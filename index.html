@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZettaDrop Space Station</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org"></script>
+</head>
+<body>
+    <button class="lang-toggle-btn" onclick="toggleLanguage()">🌐 EN/AR</button>
+
+    <div class="app-container">
+        
+        <!-- 🪐 الصفحة الأولى: البروفايل (Home Tab) -->
+        <div id="home-page" class="page active">
+            <div class="space-card profile-card">
+                <div class="neon-avatar">🪐</div>
+                <h2 id="username">Loading...</h2>
+                <div id="user-id" class="user-id-badge">ID: Fetching...</div>
+                <div id="rank-text" class="rank-badge">Galaxy Rank: Pioneer</div>
+            </div>
+            <div class="space-card balance-card">
+                <p id="total-energy-text">⚡ Total Accumulated Energy</p>
+                <h3><span id="points">0</span> <span id="core-text">Core Points</span></h3>
+                <span class="usd-equivalent">≈ $0.00 USDT</span>
+            </div>
+            
+            <!-- 👥 قسم الإحالة المحدث: مربع الرابط وزر النسخ وسجل الأصدقاء المدعوين -->
+            <div class="space-card ref-card">
+                <div id="ref-title" class="section-title" style="margin-top:0;">👥 Share & Multiply</div>
+                <p id="ref-desc" style="color: #a19bb0; font-size: 12px; margin-bottom: 12px;">Invite your crew to earn +50 Points per recruit!</p>
+                
+                <div class="copy-link-container">
+                    <input type="text" id="ref-url" value="https://t.me" readonly class="space-input ref-input">
+                    <button id="copy-btn-text" class="sub-btn copy-btn" onclick="copyRefLink()">Copy</button>
+                </div>
+
+                <div id="crew-title" class="section-title" style="font-size:11px; margin-top:15px; color:#a19bb0;">👥 Referral Crew</div>
+                <div class="crew-list" id="crew-container">
+                    <p id="no-crew-text" style="color: #555; font-size: 11px; margin: 5px 0;">Your crew is currently empty.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 💎 الصفحة الثانية: المهمات والشركات الـ 6 (Missions Tab) -->
+        <div id="tasks-page" class="page">
+            <div id="channels-title" class="section-title" style="margin-top:0;">📢 Official Channels</div>
+            <div class="space-card channels-card">
+                <div class="channels-list">
+                    <div class="channel-row">
+                        <span>🛰️ ZettaDrop News</span>
+                        <button class="sub-btn join-btn-text" onclick="openChannel('https://t.me')">Join</button>
+                    </div>
+                    <div class="channel-row">
+                        <span>🚀 Payment Proofs</span>
+                        <button class="sub-btn join-btn-text" onclick="openChannel('https://t.me')">Join</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mission-board-title" class="section-title">🛸 Quantum Mission Board</div>
+            <div class="tasks-grid">
+                <button id="adsgram-btn" class="task-btn adsgram-btn" onclick="watchAdsGram()">📺 AdsGram Video</button>
+                <button id="richads-btn" class="task-btn richads-btn" onclick="watchAd('RichAds')">🎥 RichAds Video</button>
+                <button id="monetag-btn" class="task-btn monetag-btn" onclick="openLink('Monetag')">🔗 Monetag Smartlink</button>
+                <button id="admaven-btn" class="task-btn admaven-btn" onclick="openLink('AdMaven')">🚀 AdMaven Link</button>
+                <button id="cpamatica-btn" class="task-btn cpamatica-btn" onclick="openLink('Cpamatica')">🎯 CPA Task</button>
+                <button id="hiviews-btn" class="task-btn hiviews-btn" onclick="watchAd('HiViews')">📢 HiViews Post</button>
+            </div>
+        </div>
+
+        <!-- 💳 الصفحة الثالثة: السحب والمحفظة والسجل (Wallet Tab) -->
+        <div id="wallet-page" class="page">
+            <div class="space-card wallet-card">
+                <div id="withdraw-title" class="section-title" style="margin-top:0;">💳 Withdraw Station</div>
+                <p id="withdraw-desc" style="color: #a19bb0; font-size: 12px; margin-bottom: 15px;">Minimum threshold required to bridge assets: <span style="color:#00ff88; font-weight:bold;">10,000 Points</span> (≈ $0.10)</p>
+                
+                <input type="text" id="wallet-input" placeholder="Enter your Wallet Address" class="space-input">
+                
+                <select id="network-select" class="space-input space-select">
+                    <option id="select-net-placeholder" value="" disabled selected>Select Network Protocol</option>
+                    <option value="TON">TON Network (Toncoin / USDT)</option>
+                    <option value="TRC20">TRON Network (USDT-TRC20)</option>
+                    <option value="BEP20">BNB Smart Chain (USDT-BEP20)</option>
+                </select>
+
+                <p id="double-check-text" class="double-check-warning">⚠️ Double check your wallet address! Any error will result in permanent loss of assets.</p>
+                <p id="fee-text" class="fee-warning">⚠️ Note: Network transfer fees will be automatically deducted from your payout balance.</p>
+
+                <button id="bridge-btn-text" class="action-btn withdraw-btn" onclick="processWithdraw()">Withdraw Now</button>
+            </div>
+
+            <div id="history-title" class="section-title">📜 Withdrawal History</div>
+            <div class="space-card history-card" id="history-container">
+                <p id="no-history-text" style="color: #777; font-size: 13px; text-align: center; margin: 10px 0;">No transmission history detected yet.</p>
+            </div>
+        </div>
+
+        <!-- 👥 شريط التبويبات السفلي الأنيق -->
+        <div class="nav-bar">
+            <div id="tab-profile" class="nav-item active" onclick="switchTab('home-page', this)">🪐 Profile</div>
+            <div id="tab-missions" class="nav-item" onclick="switchTab('tasks-page', this)">💎 Missions</div>
+            <div id="tab-wallet" class="nav-item" onclick="switchTab('wallet-page', this)">💳 Wallet</div>
+        </div>
+
+    </div>
+    <script>
+    const tg = window.Telegram.WebApp;
+        tg.expand();
+        const BACKEND_URL = "https://organic-winner-r7ww6v9ww7vw2xrwp-8000.app.github.dev/";
+
+
+        let currentLang = 'en';
+
+        const translations = {
+            en: {
+                rank: "Galaxy Rank: Pioneer", totalEnergy: "⚡ Total Accumulated Energy", corePoints: "Core Points",
+                refTitle: "👥 Share & Multiply", refDesc: "Invite your crew to earn +50 Points per recruit!", copyBtn: "Copy", crewTitle: "👥 Referral Crew", noCrew: "Your crew is currently empty.",
+                chanTitle: "📢 Official Channels", join: "Join", missionTitle: "🛸 Quantum Mission Board",
+                withdrawTitle: "💳 Withdraw Station", withdrawDesc: "Minimum threshold required to bridge assets: <span style='color:#00ff88; font-weight:bold;'>10,000 Points</span> (≈ \$0.10)",
+                placeholder: "Enter your Wallet Address", netPlaceholder: "Select Network Protocol",
+                doubleCheck: "⚠️ Double check your wallet address! Any error will result in permanent loss of assets.",
+                fee: "⚠️ Note: Network transfer fees will be automatically deducted from your payout balance.",
+                bridgeBtn: "Withdraw Now", histTitle: "📜 Withdrawal History", noHist: "No transmission history detected yet.",
+                tProfile: "🪐 Profile", tMissions: "💎 Missions", tWallet: "💳 Wallet"
+            },
+            ar: {
+                rank: "رتبة المجرة: رائد فضاء", totalEnergy: "⚡ إجمالي الطاقة المجمعة", corePoints: "نقاط أساسية",
+                refTitle: "👥 ضاعف أرباحك بالإحالة", refDesc: "ادعُ طاقمك لربح +50 نقطة عن كل مجند جديد!", copyBtn: "نسخ", crewTitle: "👥 طاقم الإحالة", noCrew: "طاقمك الحالي فارغ تماماً.",
+                chanTitle: "📢 القنوات الرسمية", join: "انضمام", missionTitle: "🛸 لوحة المهام الكمية",
+                withdrawTitle: "💳 محطة السحب", withdrawDesc: "الحد الأدنى المطلوب لسحب الأصول: <span style='color:#00ff88; font-weight:bold;'>10,000 نقطة</span> (≈ \$0.10)",
+                placeholder: "أدخل عنوان محفظتك الرقمية", netPlaceholder: "اختر شبكة التحويل",
+                doubleCheck: "⚠️ تحقق جيداً من عنوان المحفظة! أي خطأ سيؤدي إلى فقدان أموالك للأبد دون إمكانية استعادتها.",
+                fee: "⚠️ ملاحظة: سيتم خصم رسوم شبكة التحويل تلقائياً من رصيد الدفع الخاص بك.",
+                bridgeBtn: "اسحب الأصول الآن", histTitle: "📜 سجل عمليات السحب", noHist: "لم يتم تسجيل أي عمليات سحب حتى الآن.",
+                tProfile: "🪐 البروفايل", tMissions: "💎 المهمات", tWallet: "💳 السحب"
+            }
+        };
+
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+            document.getElementById('user-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
+        } else {
+            document.getElementById('username').innerText = "Heba_Navigator";
+            document.getElementById('user-id').innerText = "ID: 987654321";
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            const t = translations[currentLang];
+            
+            document.getElementById('rank-text').innerText = t.rank;
+            document.getElementById('total-energy-text').innerText = t.totalEnergy;
+            document.getElementById('core-text').innerText = t.corePoints;
+            document.getElementById('ref-title').innerText = t.refTitle;
+            document.getElementById('ref-desc').innerHTML = t.refDesc;
+            document.getElementById('copy-btn-text').innerText = t.copyBtn;
+            document.getElementById('crew-title').innerText = t.crewTitle;
+            if (document.getElementById('no-crew-text')) {
+                document.getElementById('no-crew-text').innerText = t.noCrew;
+            }
+            document.getElementById('channels-title').innerText = t.chanTitle;
+            document.querySelectorAll('.join-btn-text').forEach(btn => btn.innerText = t.join);
+            document.getElementById('mission-board-title').innerText = t.missionTitle;
+            document.getElementById('withdraw-title').innerText = t.withdrawTitle;
+            document.getElementById('withdraw-desc').innerHTML = t.withdrawDesc;
+            document.getElementById('wallet-input').placeholder = t.placeholder;
+            document.getElementById('select-net-placeholder').innerText = t.netPlaceholder;
+            document.getElementById('double-check-text').innerText = t.doubleCheck;
+            document.getElementById('fee-text').innerText = t.fee;
+            document.getElementById('bridge-btn-text').innerText = t.bridgeBtn;
+            document.getElementById('history-title').innerText = t.histTitle;
+            if (document.getElementById('no-history-text')) {
+                document.getElementById('no-history-text').innerText = t.noHist;
+            }
+            document.getElementById('tab-profile').innerText = t.tProfile;
+            document.getElementById('tab-missions').innerText = t.tMissions;
+            document.getElementById('tab-wallet').innerText = t.tWallet;
+        }
+
+        function switchTab(pageId, element) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        let canWatchAdsGram = true;
+        function watchAdsGram() {
+            if (!canWatchAdsGram) return;
+            alert(currentLang === 'en' ? "Extracting ad data from nebula: AdsGram" : "جاري استخراج بيانات الإعلان من السديم: AdsGram");
+            canWatchAdsGram = false;
+            const btn = document.getElementById('adsgram-btn');
+            btn.classList.add('disabled-btn');
+            let timeLeft = 10;
+            btn.innerText = currentLang === 'en' ? `⏳ Wait ${timeLeft}s` : `⏳ انتظر ${timeLeft}ث`;
+            const timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    btn.innerText = currentLang === 'en' ? `⏳ Wait ${timeLeft}s` : `⏳ انتظر ${timeLeft}ث`;
+                } else {
+                    clearInterval(timer);
+                    canWatchAdsGram = true;
+                    btn.innerText = "📺 AdsGram Video";
+                    btn.classList.remove('disabled-btn');
+                }
+            }, 1000);
+        }
+
+        function watchAd(platform) { alert(currentLang === 'en' ? "Extracting ad data from nebula: " + platform : "جاري استخراج الإعلان: " + platform); }
+        function openLink(platform) { alert(currentLang === 'en' ? "Jumping through smartlink wormhole to: " + platform : "جاري فتح الرابط الذكي: " + platform); }
+        function openChannel(url) { tg.openTelegramLink(url); }
+        function copyRefLink() { alert(currentLang === 'en' ? "Your unique link has been copied!" : "تم نسخ رابط الإحالة الفريد الخاص بك بنجاح!"); }
+        
+        function processWithdraw() {
+            const addr = document.getElementById('wallet-input').value;
+            const network = document.getElementById('network-select').value;
+            if(!addr) { alert(currentLang === 'en' ? "Please input a valid address!" : "الرجاء إدخال عنوان محفظة صحيح!"); return; }
+            if(!network) { alert(currentLang === 'en' ? "Please select a network protocol!" : "الرجاء اختيار شبكة التحويل!"); return; }
+            
+            if(currentLang === 'en') {
+                alert(`Your request has been securely transmitted to the Admin.\n\nProtocol: ${network}\nAddress: ${addr}\n\nVerification process requires 1 to 24 hours. Please be patient.`);
+            } else {
+                alert(`تم إرسال طلبك بأمان إلى الإدارة للمعاينة.\n\nالشبكة: ${network}\nالعنوان: ${addr}\n\nعملية التحقق والإرسال تستغرق من 1 إلى 24 ساعة. يرجى توخي الصبر.`);
+            }
+        }
+    </script>
+</body>
+</html>
