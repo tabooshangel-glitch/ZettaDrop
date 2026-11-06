@@ -100,7 +100,7 @@ def welcome(message):
     ref_link = f"https://t.me{bot.get_me().username}?start={user_id}"
     markup = InlineKeyboardMarkup()
     # 🔗 تم تصليح الروابط وحقن الدومين العالمي تبع ريندر المفتوح والمؤمن بالكامل
-    web_url = f"https://onrender.com{user_id}&name={user_name}&ref={ref_link}&v=10"
+    web_url = f"https://zettadrop.onrender.com/?id={user_id}&name={user_name}&ref={ref_link}&v=10"
     
     mini_app_button = InlineKeyboardButton(text="🚀 Open ZettaDrop", web_app=WebAppInfo(url=web_url))
     markup.add(mini_app_button)
