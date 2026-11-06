@@ -12,8 +12,8 @@ bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 # 📢 المعرفات الحقيقية لقنوات التليجرام المخفية الهوية لمنع ثغرة الدخول والخروج
-CHANNEL_NEWS_ID = "-1002233445566"  
-CHANNEL_PROOFS_ID = "-1003344556677"  
+CHANNEL_NEWS_ID = "@Zettadropnews"  
+CHANNEL_PROOFS_ID = "@Zettadropproofs"  
 
 # 💾 تأسيس قاعدة البيانات وهندسة جداول الحماية وسجل السحب المتصفر تلقائياً
 def init_db():
