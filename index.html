@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZettaDrop Quantum Station</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://telegram.org"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <button id="lang-btn-text" class="lang-toggle-btn" onclick="toggleLanguage()">🌐 EN/AR</button>
@@ -224,7 +224,7 @@
         let currentLang = 'en';
         let userId = 0;
         let globalUsername = "Cosmo_User";
-        const BACKEND_URL = "https://onrender.com";
+       const BACKEND_URL = window.location.origin;
 
         const urlParams = new URLSearchParams(window.location.search);
         userId = urlParams.get('id') || 0;
@@ -260,10 +260,24 @@
             }
         };
         async function fetchUserData() {
-            if(!userId || userId == 0) return;
+            if (!tg || !tg.initData) return;
             try {
-                const response = await fetch(`${BACKEND_URL}/api/user?id=${userId}`);
+                const response = await fetch(`${BACKEND_URL}/api/user`, {
+    method: 'GET',
+    headers: {
+        'X-Telegram-Init-Data': tg.initData
+    }
+});
                 const data = await response.json();
+
+if (!response.ok) {
+    console.error("User data error:", data.error);
+    return;
+}
+
+if (data.user_id) {
+    userId = data.user_id;
+}
                 if(data) {
                     document.getElementById('username').innerText = data.username || globalUsername;
                     document.getElementById('user-id').innerText = "ID: " + userId;
@@ -312,17 +326,84 @@
 
         function joinChannel(type, url) { tg.openTelegramLink(url); }
 
-        async function verifyChannel(type) {
-            alert(currentLang === 'en' ? "Scanning database... System verification success! +100 Points added!" : "جاري فحص قاعدة البيانات... تم التحقق بنجاح ومنحك 100 نقطة حقيقية!");
-            try {
-                await fetch(`${BACKEND_URL}/api/verify_channel`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: userId, type: type })
-                });
+async function verifyChannel(type) {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/verify_channel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({ type: type })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(result.error || 'Verification failed');
+            return;
+        }
                 fetchUserData();
             } catch(e) { fetchUserData(); }
         }
+        // SpinWheel Cooldown Timer
+let spinCooldownInterval = null;
+let spinRemainingSeconds = 0;
+
+function updateSpinButton() {
+    const btn = document.getElementById('spin-launch-btn');
+    if (!btn) return;
+
+    if (spinRemainingSeconds > 0) {
+        btn.classList.add('disabled-btn');
+
+        let timeLabel;
+
+        if (currentLang === 'en') {
+            timeLabel = formatTime(spinRemainingSeconds);
+        } else {
+            const h = Math.floor(spinRemainingSeconds / 3600);
+            const m = Math.floor((spinRemainingSeconds % 3600) / 60);
+            const s = spinRemainingSeconds % 60;
+            timeLabel = `${h}س ${m}د ${s}ث`;
+        }
+
+        btn.innerText = `⏳ ${timeLabel}`;
+    } else {
+        btn.classList.remove('disabled-btn');
+        btn.innerText = currentLang === 'en'
+            ? "Spin Planet Wheel"
+            : "لفّ عجلة الكوكب";
+    }
+}
+
+function startSpinCooldown(seconds) {
+    if (spinCooldownInterval !== null) {
+        clearInterval(spinCooldownInterval);
+        spinCooldownInterval = null;
+    }
+
+    spinRemainingSeconds = Math.max(
+        0,
+        Math.floor(Number(seconds) || 0)
+    );
+
+    updateSpinButton();
+
+    if (spinRemainingSeconds <= 0) return;
+
+    spinCooldownInterval = setInterval(() => {
+        spinRemainingSeconds = Math.max(0, spinRemainingSeconds - 1);
+
+        updateSpinButton();
+
+        if (spinRemainingSeconds <= 0) {
+            clearInterval(spinCooldownInterval);
+            spinCooldownInterval = null;
+            fetchUserData();
+        }
+    }, 1000);
+}
         function renderQuantumAdBoard(states) {
             if(!states) return;
             
@@ -363,15 +444,14 @@
             updateAdCard("admaven", states["AdMaven"] || {index: 0, cooldown: false, remaining_seconds: 0}, 1, admavenPoints, null, null);
             updateAdCard("hivepost", states["HivePost"] || {index: 0, cooldown: false, remaining_seconds: 0}, 1, hivepostPoints, null, null);
             
-            const spinState = states["SpinWheel"] || {cooldown: false, remaining_seconds: 0};
-            const spinBtn = document.getElementById('spin-launch-btn');
-            if(spinState.cooldown) {
-                spinBtn.classList.add('disabled-btn');
-                spinBtn.innerText = `⏳ ${formatTime(spinState.remaining_seconds)}`;
-            } else {
-                spinBtn.classList.remove('disabled-btn');
-                spinBtn.innerText = currentLang === 'en' ? "Spin Planet Wheel" : "Spin Planet Wheel";
-            }
+            const spinState = states["SpinWheel"] || {
+    cooldown: false,
+    remaining_seconds: 0
+};
+
+startSpinCooldown(
+    spinState.cooldown ? spinState.remaining_seconds : 0
+);
         }
 
         function updateAdCard(id, state, maxCount, pointArray, tipsEn, tipsAr) {
@@ -447,35 +527,117 @@
             if(mainBtn) mainBtn.style.display = 'block';
             sendRewardToken(platform, 'link', false);
         }
-        function startCosmicSpin() {
-            const btn = document.getElementById('spin-launch-btn');
-            if(btn.classList.contains('disabled-btn')) return;
-            btn.classList.add('disabled-btn');
-            const planet = document.getElementById('saturn-planet');
-            const rewards = [5, 10, 15, 50, 100];
-            const pool = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,3,3,4];
-            const luckyIndex = pool[Math.floor(Math.random() * pool.length)];
-            const finalGift = rewards[luckyIndex];
-            const degrees = 1800 + (luckyIndex * 72);
-            planet.style.transform = `rotate(${degrees}deg)`;
-            setTimeout(async () => {
-                if(finalGift === 5 || finalGift === 10) {
-                    const askDouble = confirm(currentLang === 'en' ? `🎉 You won ${finalGift} Points!\n\nWant to DOUBLE your reward to ${finalGift * 2} Pts? Click OK to watch a video ad!` : `🎉 مبروك! لقد ربحت ${finalGift} نقاط!\n\nهل تريد مضاعفة جائزتك إلى ${finalGift * 2} نقطة؟ اضغط موافق لمشاهدة فيديو إعلاني سريع!`);
-                    if(askDouble) { alert(currentLang === 'en' ? "Launching Video Ad... Keep watching to claim Double!" : "جاري تشغيل الفيديو... يرجى المشاهدة حتى النهاية لنيل الضعف!"); await sendRewardToken("SpinWheel", "spin", true, finalGift * 2); }
-                    else { await sendRewardToken("SpinWheel", "spin", false, finalGift); }
-                } else {
-                    alert(currentLang === 'en' ? `🎉 Super Space Luck! You won +${finalGift} Core Points!` : `🎉 يا لك من محظوظ كوني! لقد كسبت +${finalGift} نقطة أساسية!`);
-                    await sendRewardToken("SpinWheel", "spin", false, finalGift);
-                }
-                planet.style.transform = `rotate(0deg)`;
-                fetchUserData();
-            }, 4000);
+async function startCosmicSpin() {
+    const btn = document.getElementById('spin-launch-btn');
+    const planet = document.getElementById('saturn-planet');
+
+    if (btn.classList.contains('disabled-btn')) return;
+
+    if (!tg || !tg.initData) {
+        alert('Please open ZettaDrop from Telegram.');
+        return;
+    }
+
+    btn.classList.add('disabled-btn');
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/spin`, {
+            method: 'POST',
+            headers: {
+                'X-Telegram-Init-Data': tg.initData
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            if (response.status === 429) {
+                const seconds = result.remaining_seconds || 0;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+
+                alert(`⏳ Your next spin is available in ${hours}h ${minutes}m.`);
+            } else {
+                alert(result.error || 'Spin failed. Please try again.');
+            }
+
+            return;
         }
 
-        async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
-            try { await fetch(`${BACKEND_URL}/api/reward`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: userId, platform: platform, type: type, double: isDouble, points: customPoints }) }); fetchUserData(); }
-            catch(e) { fetchUserData(); }
+        const luckyIndex = Number(result.index);
+        const finalGift = Number(result.reward);
+
+        if (
+            !Number.isInteger(luckyIndex) ||
+            luckyIndex < 0 ||
+            luckyIndex > 4 ||
+            ![5, 10, 15, 50, 100].includes(finalGift)
+        ) {
+            alert('Invalid spin result. Please contact support.');
+            return;
         }
+
+        startSpinCooldown(result.next_spin_in || 43200);
+
+        // Reset the wheel without showing a reverse animation
+        planet.style.transition = 'none';
+        planet.style.transform = 'rotate(0deg)';
+        void planet.offsetWidth;
+
+        // Rotate to the server-selected reward
+        planet.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.1, 1)';
+
+        const degrees = 1800 - (luckyIndex * 72);
+        planet.style.transform = `rotate(${degrees}deg)`;
+
+        await new Promise(resolve => setTimeout(resolve, 4200));
+
+        alert(
+            currentLang === 'en'
+                ? `🎉 Congratulations! You won ${finalGift} Points!`
+                : `🎉 مبروك! ربحت ${finalGift} نقطة!`
+        );
+
+        await fetchUserData();
+
+    } catch (error) {
+        console.error('Spin error:', error);
+        alert('Connection error. Please try again.');
+} finally {
+    if (spinRemainingSeconds <= 0) {
+        btn.classList.remove('disabled-btn');
+    }
+}
+}
+
+async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
+        try {
+        const response = await fetch(`${BACKEND_URL}/api/reward`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({
+                platform: platform
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(result.error || 'Reward could not be added');
+            return;
+        }
+
+        alert(`Congratulations! You earned ${result.points_added} points!`);
+        await fetchUserData();
+
+    } catch (e) {
+        console.error('Reward error:', e);
+        alert('Connection error. Please try again.');
+    }
+}
 
         async function submitWithdraw() {
             const addr = document.getElementById('wallet-input').value;
@@ -492,12 +654,33 @@
         function formatTime(seconds) { const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); const s = seconds % 60; return `${h}h ${m}m ${s}s`; }
         
         function switchTab(pageId, element) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            if(pageId === 'tasks-page') { document.getElementById('tasks-page-extra').classList.add('active'); }
-            element.classList.add('active');
+    const targetPage = document.getElementById(pageId);
+
+    if (!targetPage || !element) {
+        console.error("Tab not found:", pageId);
+        return;
+    }
+
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(i => {
+        i.classList.remove('active');
+    });
+
+    targetPage.classList.add('active');
+
+    if (pageId === 'tasks-page') {
+        const extraPage = document.getElementById('tasks-page-extra');
+
+        if (extraPage) {
+            extraPage.classList.add('active');
         }
+    }
+
+    element.classList.add('active');
+}
 
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'ar' : 'en';
@@ -526,17 +709,19 @@
         }
 
         fetchUserData();
-                function switchTab(pageId, element) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            
-            document.getElementById(pageId).classList.add('active');
-            if(pageId === 'tasks-page') {
-                document.getElementById('tasks-page-extra').classList.add('active');
-            }
-            element.classList.add('active');
-        }
 
+        function copyRefLink() {
+            const refInput = document.getElementById('ref-url');
+            const refLink = refInput.value;
+
+            navigator.clipboard.writeText(refLink)
+                .then(() => alert('Referral link copied!'))
+                .catch(() => {
+                    refInput.select();
+                    document.execCommand('copy');
+                    alert('Referral link copied!');
+                });
+        }
     </script>
 </body>
 </html>
