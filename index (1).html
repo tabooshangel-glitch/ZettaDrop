@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZettaDrop Quantum Station</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <button id="lang-btn-text" class="lang-toggle-btn" onclick="toggleLanguage()">🌐 EN/AR</button>
+
+    <div class="app-container">
+        
+        <!-- 🪐 التبويب الأول: البروفايل ونظام الإحالة (Profile Tab) -->
+        <div id="home-page" class="page active">
+            <div class="space-card profile-card">
+                <div class="neon-avatar">🪐</div>
+                <h2 id="username">Loading Profile...</h2>
+                <div id="user-id" class="user-id-badge">ID: Fetching...</div>
+                <div id="rank-text" class="rank-badge">Galaxy Rank: Pioneer</div>
+            </div>
+            
+            <div class="space-card balance-card">
+                <p id="total-energy-text">⚡ Total Accumulated Energy</p>
+                <h3><span id="points">0</span> <span id="core-text">Core Points</span></h3>
+                <span class="usd-equivalent">≈ $<span id="usd">0.00</span> USDT</span>
+            </div>
+            <!-- 🎯 قنوات تليجرام الرسمية ونظام مكافأة الـ 100 نقطة التفاعلي والتحقق الصارم -->
+            <div id="channels-title" class="section-title">📢 Official Channels (+100 Pts Each)</div>
+            <div class="space-card channels-card">
+                <div class="channels-list">
+                    <div class="channel-row">
+                        <span id="news-chan-title">🛰️ ZettaDrop News</span>
+                        <div style="display:flex; gap:6px;">
+                            <button id="news-join-btn" class="sub-btn join-btn-text" onclick="joinChannel('news', 'https://t.me/Zettadropnews')">Join</button>
+                            <button id="news-verify-btn" class="sub-btn verify-btn" onclick="verifyChannel('news')">Verify</button>
+                        </div>
+                    </div>
+                    <div class="channel-row">
+                        <span id="proofs-chan-title">🚀 Payment Proofs</span>
+                        <div style="display:flex; gap:6px;">
+                            <button id="proofs-join-btn" class="sub-btn join-btn-text" onclick="joinChannel('proofs', 'https://t.me/Zettadropproofs')">Join</button>
+                            <button id="proofs-verify-btn" class="sub-btn verify-btn" onclick="verifyChannel('proofs')">Verify</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 👥 قسم الإحالة ومربع الرابط المتصل بقاعدة البيانات -->
+            <div class="space-card ref-card">
+                <div id="ref-title" class="section-title" style="margin-top:0;">👥 Share & Multiply</div>
+                <p id="ref-desc" style="color: #a19bb0; font-size: 12px; margin-bottom: 12px;">Invite your crew to earn +50 Points per recruit!</p>
+                <div class="copy-link-container">
+                    <input type="text" id="ref-url" value="Loading transmission link..." readonly class="space-input ref-input">
+                    <button id="copy-btn-text" class="sub-btn copy-btn" onclick="copyRefLink()">Copy</button>
+                </div>
+                <div id="crew-title" class="section-title" style="font-size:11px; margin-top:15px; color:#a19bb0;">👥 Referral Crew</div>
+                <div class="crew-list" id="crew-container">
+                    <p id="no-crew-text" style="color: #555; font-size: 11px; margin: 5px 0;">Your crew is currently empty.</p>
+                </div>
+            </div>
+        </div>
+        <!-- 💎 التبويب الثاني: لوحة المهام والشركات (Missions Tab) -->
+        <div id="tasks-page" class="page">
+            <div id="mission-board-title" class="section-title" style="margin-top:0;">🛸 Quantum Mission Board</div>
+            
+            <div class="platform-container">
+                <!-- 1. كبسولة شركة AdsGram (5 إعلانات كل 11 ساعة) -->
+                <div class="ad-block-card border-adsgram">
+                    <div class="ad-block-header">
+                        <span class="plat-name">AdsGram</span>
+                        <span id="adsgram-count" class="plat-counter">0/5 Ads</span>
+                    </div>
+                    <div id="adsgram-reward-box" class="ad-reward-info">
+                        <div class="next-ad-title">🔵 NEXT AD</div>
+                        <div id="adsgram-bonus-text" class="reward-points-text">💰 Reward: 100 Pts</div>
+                        <div id="adsgram-desc-text" class="reward-tip">✨ Watch gives 25 Pts, Click gives 75 Pts bonus!</div>
+                    </div>
+                    <button id="adsgram-btn" class="action-btn-card adsgram-bg" onclick="processAdClick('AdsGram', 'video')">Watch Ad</button>
+                </div>
+
+                <!-- 2. كبسولة شركة RichAdsGram (5 إعلانات كل 11 ساعة) -->
+                <div class="ad-block-card border-richads">
+                    <div class="ad-block-header">
+                        <span class="plat-name">RichAdsGram</span>
+                        <span id="richads-count" class="plat-counter">0/5 Ads</span>
+                    </div>
+                    <div id="richads-reward-box" class="ad-reward-info">
+                        <div class="next-ad-title">🔵 NEXT AD</div>
+                        <div id="richads-bonus-text" class="reward-points-text">💰 Reward: 40 Pts</div>
+                        <div id="richads-desc-text" class="reward-tip">✨ Watch the ad and claim your reward instantly.</div>
+                    </div>
+                    <button id="richads-btn" class="action-btn-card richads-bg" onclick="processAdClick('RichAdsGram', 'video')">Watch Ad</button>
+                </div>
+
+                <!-- 3. كبسولة شركة Monetag Smart Link (4 إعلانات كل 3 ساعات مع العبارة المبسطة والتايمر) -->
+                <div class="ad-block-card border-monetag">
+                    <div class="ad-block-header">
+                        <span class="plat-name">Monetag Smart Link</span>
+                        <span id="monetag-count" class="plat-counter">0/4 Ads</span>
+                    </div>
+                    <div id="monetag-reward-box" class="ad-reward-info">
+                        <div class="next-ad-title">🔵 NEXT AD</div>
+                        <div id="monetag-bonus-text" class="reward-points-text">💰 Reward: 40 Pts</div>
+                        <div id="monetag-desc-text" class="reward-tip" style="color:#f1c40f;">⏳ Stay 10 seconds inside the link and press the reward button.</div>
+                    </div>
+                    <button id="monetag-btn" class="action-btn-card monetag-bg" onclick="processAdClick('Monetag', 'link')">Open Link</button>
+                    <div id="monetag-timer" class="timer-display" style="display:none;">⏳ Verification Timer: 10s</div>
+                    <button id="monetag-verify-btn" class="action-btn-card verify-bg" style="display:none;" onclick="verifyLinkWormhole('Monetag')">Verify Reward</button>
+                </div>
+            </div>
+        </div>
+        <!-- 💎 التبويب الثاني (تكملة الشركات الثلاثة المتبقية) -->
+        <div id="tasks-page-extra" class="page">
+            <div class="platform-container" style="margin-top: 12px;">
+                <!-- 4. كبسولة شركة TON Ads (5 إعلانات كل 11 ساعة) -->
+                <div class="ad-block-card border-ton">
+                    <div class="ad-block-header">
+                        <span class="plat-name">TON Ads</span>
+                        <span id="tonads-count" class="plat-counter">0/5 Ads</span>
+                    </div>
+                    <div id="tonads-reward-box" class="ad-reward-info">
+                        <div class="next-ad-title">🔵 NEXT AD</div>
+                        <div id="tonads-bonus-text" class="reward-points-text">💰 Reward: 80 Pts</div>
+                        <div id="tonads-desc-text" class="reward-tip">✨ Watch gives 20 Pts, Click gives 60 Pts bonus!</div>
+                    </div>
+                    <button id="tonads-btn" class="action-btn-card ton-bg" onclick="processAdClick('TonAds', 'video')">Watch Ad</button>
+                </div>
+
+                <!-- 5. كبسولة شركة AdMaven Link (إعلان واحد كل 24 ساعة) -->
+                <div class="ad-block-card border-admaven">
+                    <div class="ad-block-header">
+                        <span class="plat-name">AdMaven Link</span>
+                        <span id="admaven-count" class="plat-counter">0/1 Ad</span>
+                    </div>
+                    <div id="admaven-reward-box" class="ad-reward-info">
+                        <div class="next-ad-title">🔵 NEXT AD</div>
+                        <div id="admaven-bonus-text" class="reward-points-text">💰 Reward: 50 Pts</div>
+                        <div id="admaven-desc-text" class="reward-tip" style="color:#ff7675;">⏳ Stay 10 seconds inside the link and press the reward button.</div>
+                    </div>
+                    <button id="admaven-btn" class="action-btn-card admaven-bg" onclick="processAdClick('AdMaven', 'link')">Open Link</button>
+                    <div id="admaven-timer" class="timer-display" style="display:none;">⏳ Verification Timer: 10s</div>
+                    <button id="admaven-verify-btn" class="action-btn-card verify-bg" style="display:none;" onclick="verifyLinkWormhole('AdMaven')">Verify Reward</button>
+                </div>
+
+                <!-- 6. كبسولة شركة HivePost Transmission (إعلان واحد كل 24 ساعة) -->
+                <div class="ad-block-card border-hivepost">
+                    <div class="ad-block-header">
+                        <span class="plat-name">HivePost Transmission</span>
+                        <span id="hivepost-count" class="plat-counter">0/1 Ad</span>
+                    </div>
+                    <div id="hivepost-reward-box" class="ad-reward-info">
+                        <div class="next-ad-title">🔵 NEXT AD</div>
+                        <div id="hivepost-bonus-text" class="reward-points-text">💰 Reward: 50 Pts</div>
+                        <div id="hivepost-desc-text" class="reward-tip" style="color:#ff7675;">⏳ Stay 10 seconds inside the link and press the reward button.</div>
+                    </div>
+                    <button id="hivepost-btn" class="action-btn-card hivepost-bg" onclick="processAdClick('HivePost', 'link')">Open Link</button>
+                    <div id="hivepost-timer" class="timer-display" style="display:none;">⏳ Verification Timer: 10s</div>
+                    <button id="hivepost-verify-btn" class="action-btn-card verify-bg" style="display:none;" onclick="verifyLinkWormhole('HivePost')">Verify Reward</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 💳 التبويب الثالث: محطة السحب والمحفظة (Wallet Tab) -->
+        <div id="wallet-page" class="page">
+            <div class="space-card wallet-card">
+                <div id="withdraw-title" class="section-title" style="margin-top:0;">💳 Withdraw Station</div>
+                <p id="withdraw-desc" style="color: #a19bb0; font-size: 12px; margin-bottom: 15px;">Minimum threshold required to bridge assets: <span style='color:#00ff88; font-weight:bold;'>10,000 Points</span> (≈ $0.10)</p>
+                
+                <input type="text" id="wallet-input" placeholder="Enter your Wallet Address" class="space-input">
+                <select id="network-select" class="space-input space-select">
+                    <option id="select-net-placeholder" value="" disabled selected>Select Network Protocol</option>
+                    <option value="TON">TON Network (Toncoin / USDT)</option>
+                    <option value="TRC20">TRON Network (USDT-TRC20)</option>
+                    <option value="BEP20">BNB Smart Chain (USDT-BEP20)</option>
+                </select>
+
+                <p id="double-check-text" class="double-check-warning">⚠️ Double check your wallet address! Any error will result in permanent loss of assets.</p>
+                <p id="fee-text" class="fee-warning">⚠️ Note: Network transfer fees will be automatically deducted from your payout balance.</p>
+
+                <button id="bridge-btn-text" class="action-btn withdraw-btn" onclick="submitWithdraw()">Withdraw Now</button>
+            </div>
+
+            <div id="history-title" class="section-title">📜 Withdrawal History</div>
+            <div class="space-card history-card" id="history-container"></div>
+        </div>
+        <!-- 🎰 التبويب الرابع: عجلة حظ كوكب زحل الكونية المستقلة (Spin Tab) -->
+        <div id="spin-page" class="page">
+            <div id="spin-title" class="section-title" style="margin-top:0;">🎰 Orbital Cosmic Spin</div>
+            <div class="space-card spin-card">
+                <p id="spin-desc" style="color: #a19bb0; font-size: 12px; margin-bottom: 20px; line-height: 1.4;">
+                Spin the cosmic wheel once every 12 hours for free!
+                </p>
+                
+                <!-- 🪐 مجسم كوكب زحل النيوني المشع مع الحلقة المضيئة والمؤشر الفضائي 🛸 -->
+                <div class="saturn-container">
+                    <div class="spacecraft-pointer">🛸</div>
+                    <div class="saturn-ring-glow"></div>
+                    <div id="saturn-planet" class="saturn-body">
+                        <div class="spin-sector s1"><span>5 Pts</span></div>
+                        <div class="spin-sector s2"><span>10 Pts</span></div>
+                        <div class="spin-sector s3"><span>15 Pts</span></div>
+                        <div class="spin-sector s4"><span>50 Pts</span></div>
+                        <div class="spin-sector s5"><span>100 Pts</span></div>
+                    </div>
+                </div>
+
+                <div id="spin-timer-display" class="timer-display" style="display:none; margin: 15px 0;">⏳ Cooldown Active</div>
+                <button id="spin-launch-btn" class="action-btn ref-btn" style="margin-top: 25px;" onclick="startCosmicSpin()">Spin Planet Wheel</button>
+            </div>
+        </div>
+        <!-- 👥 شريط التبويبات السفلي الأنيق والمحدث بـ 4 تبويبات كاملة متناسقة -->
+        <div class="nav-bar">
+            <div id="tab-profile" class="nav-item active" onclick="switchTab('home-page', this)">🪐 Profile</div>
+            <div id="tab-missions" class="nav-item" onclick="switchTab('tasks-page', this)">💎 Missions</div>
+            <div id="tab-spin" class="nav-item" onclick="switchTab('spin-page', this)">🎰 Spin</div>
+            <div id="tab-wallet" class="nav-item" onclick="switchTab('wallet-page', this)">💳 Wallet</div>
+                </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let currentLang = 'en';
+        let userId = 0;
+        let globalUsername = "Cosmo_User";
+       const BACKEND_URL = window.location.origin;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('id') || 0;
+        globalUsername = urlParams.get('name') || "Cosmo_User";
+        const rawRef = urlParams.get('ref') || "https://t.me";
+        
+        document.getElementById('ref-url').value = rawRef;
+
+        let activeTimers = {};
+
+        const translations = {
+            en: {
+                rank: "Galaxy Rank: Pioneer", totalEnergy: "⚡ Total Accumulated Energy", corePoints: "Core Points",
+                refTitle: "👥 Share & Multiply", refDesc: "Invite your crew to earn +50 Points per recruit!", copyBtn: "Copy", crewTitle: "👥 Referral Crew", noCrew: "Your crew is currently empty.",
+                chanTitle: "📢 Official Channels (+100 Pts Each)", join: "Join", missionTitle: "🛸 Quantum Mission Board",
+                withdrawTitle: "💳 Withdraw Station", withdrawDesc: "Minimum threshold required to bridge assets: <span style='color:#00ff88; font-weight:bold;'>10,000 Points</span> (≈ $0.10)",
+                placeholder: "Enter your Wallet Address", netPlaceholder: "Select Network Protocol",
+                doubleCheck: "⚠️ Double check your wallet address! Any error will result in permanent loss of assets.",
+                fee: "⚠️ Note: Network transfer fees will be automatically deducted from your payout balance.",
+                bridgeBtn: "Withdraw Now", histTitle: "📜 Withdrawal History", noHist: "No transmission history detected yet.",
+                tProfile: "🪐 Profile", tMissions: "💎 Missions", tSpin: "🎰 Spin", tWallet: "💳 Wallet"
+            },
+            ar: {
+                rank: "رتبة المجرة: رائد فضاء", totalEnergy: "⚡ إجمالي الطاقة المجمعة", corePoints: "نقاط أساسية",
+                refTitle: "👥 ضاعف أرباحك بالإحالة", refDesc: "ادعُ طاقمك لربح +50 نقطة عن كل مجند جديد!", copyBtn: "نسخ", crewTitle: "👥 طاقم الإحالة", noCrew: "طاقمك الحالي فارغ تماماً.",
+                chanTitle: "📢 القنوات الرسمية (+100 نقطة لكل قناة)", join: "انضمام", missionTitle: "🛸 لوحة المهام الكمية",
+                withdrawTitle: "💳 محطة السحب", withdrawDesc: "الحد الأدنى المطلوب لسحب الأصول: <span style='color:#00ff88; font-weight:bold;'>10,000 نقطة</span> (≈ $0.10)",
+                placeholder: "أدخل عنوان محفظتك الرقمية", netPlaceholder: "اختر شبكة التحويل",
+                doubleCheck: "⚠️ تحقق جيداً من عنوان المحفظة! أي خطأ سيؤدي إلى فقدان أموالك للأبد دون إمكانية استعادتها.",
+                fee: "⚠️ ملاحظة: سيتم خصم رسوم شبكة التحويل تلقائياً من رصيد الدفع الخاص بك.",
+                bridgeBtn: "اسحب الآن", histTitle: "📜 سجل عمليات السحب", noHist: "لم يتم تسجيل أي عمليات سحب حتى الآن.",
+                tProfile: "🪐 البروفايل", tMissions: "💎 المهمات", tSpin: "🎰 الحظ", tWallet: "💳 السحب"
+            }
+        };
+        async function fetchUserData() {
+            if (!tg || !tg.initData) return;
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user`, {
+    method: 'GET',
+    headers: {
+        'X-Telegram-Init-Data': tg.initData
+    }
+});
+                const data = await response.json();
+
+if (!response.ok) {
+    console.error("User data error:", data.error);
+    return;
+}
+
+if (data.user_id) {
+    userId = data.user_id;
+}
+                if(data) {
+                    document.getElementById('username').innerText = data.username || globalUsername;
+                    document.getElementById('user-id').innerText = "ID: " + userId;
+                    document.getElementById('points').innerText = data.points;
+                    document.getElementById('usd').innerText = (data.points / 100000).toFixed(2);
+                    
+                    updateChannelRow('news', data.joined_news);
+                    updateChannelRow('proofs', data.joined_proofs);
+
+                    const crewContainer = document.getElementById('crew-container');
+                    if(data.crew && data.crew.length > 0) {
+                        crewContainer.innerHTML = data.crew.map(name => `<div class='channel-row'><span>👤 ${name}</span><span style='color:#00ff88;'>+50 Pts</span></div>`).join('');
+                    } else {
+                        crewContainer.innerHTML = `<p id="no-crew-text" style="color: #555; font-size: 11px; margin: 5px 0;">${translations[currentLang].noCrew}</p>`;
+                    }
+                    
+                    const histContainer = document.getElementById('history-container');
+                    if(data.history && data.history.length > 0) {
+                        histContainer.innerHTML = data.history.map(item => `
+                            <div class='history-item'>
+                                <div><span class='hist-net'>${item.network}</span><br><span class='hist-date'>${item.date}</span></div>
+                                <div style='text-align: right;'><span class='hist-points'>${item.points} Pts</span><br><span class='status-badge ${item.status.toLowerCase()}'>${item.status}</span></div>
+                            </div>
+                        `).join('');
+                    } else {
+                        histContainer.innerHTML = `<p id="no-history-text" style="color: #777; font-size: 13px; text-align: center; margin: 10px 0;">${translations[currentLang].noHist}</p>`;
+                    }
+                    
+                    renderQuantumAdBoard(data.ad_states);
+                }
+            } catch (e) { console.log("Core link failure", e); }
+        }
+
+        function updateChannelRow(type, status) {
+            const joinBtn = document.getElementById(`${type}-join-btn`);
+            const verifyBtn = document.getElementById(`${type}-verify-btn`);
+            if(status === 1) {
+                if(joinBtn) joinBtn.style.display = 'none';
+                if(verifyBtn) {
+                    verifyBtn.className = "sub-btn success-bg";
+                    verifyBtn.innerText = currentLang === 'en' ? "Verified ✓" : "متحقق ✓";
+                    verifyBtn.onclick = null;
+                }
+            }
+        }
+
+        function joinChannel(type, url) { tg.openTelegramLink(url); }
+
+async function verifyChannel(type) {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/verify_channel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({ type: type })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(result.error || 'Verification failed');
+            return;
+        }
+                fetchUserData();
+            } catch(e) { fetchUserData(); }
+        }
+        // SpinWheel Cooldown Timer
+let spinCooldownInterval = null;
+let spinRemainingSeconds = 0;
+
+function updateSpinButton() {
+    const btn = document.getElementById('spin-launch-btn');
+    if (!btn) return;
+
+    if (spinRemainingSeconds > 0) {
+        btn.classList.add('disabled-btn');
+
+        let timeLabel;
+
+        if (currentLang === 'en') {
+            timeLabel = formatTime(spinRemainingSeconds);
+        } else {
+            const h = Math.floor(spinRemainingSeconds / 3600);
+            const m = Math.floor((spinRemainingSeconds % 3600) / 60);
+            const s = spinRemainingSeconds % 60;
+            timeLabel = `${h}س ${m}د ${s}ث`;
+        }
+
+        btn.innerText = `⏳ ${timeLabel}`;
+    } else {
+        btn.classList.remove('disabled-btn');
+        btn.innerText = currentLang === 'en'
+            ? "Spin Planet Wheel"
+            : "لفّ عجلة الكوكب";
+    }
+}
+
+function startSpinCooldown(seconds) {
+    if (spinCooldownInterval !== null) {
+        clearInterval(spinCooldownInterval);
+        spinCooldownInterval = null;
+    }
+
+    spinRemainingSeconds = Math.max(
+        0,
+        Math.floor(Number(seconds) || 0)
+    );
+
+    updateSpinButton();
+
+    if (spinRemainingSeconds <= 0) return;
+
+    spinCooldownInterval = setInterval(() => {
+        spinRemainingSeconds = Math.max(0, spinRemainingSeconds - 1);
+
+        updateSpinButton();
+
+        if (spinRemainingSeconds <= 0) {
+            clearInterval(spinCooldownInterval);
+            spinCooldownInterval = null;
+            fetchUserData();
+        }
+    }, 1000);
+}
+        function renderQuantumAdBoard(states) {
+            if(!states) return;
+            
+            // جداول ومصفوفات النقاط التناقصية الصارمة للشركات الـ 6 بالترتيب الكامل
+            const adsgramPoints = [100, 75, 50, 40, 30];
+            const richadsPoints = [40, 20, 10, 5, 5];
+            const monetagPoints = [40, 20, 10, 5];
+            const tonadsPoints = [80, 50, 30, 20, 15];
+            const admavenPoints = [50];
+            const hivepostPoints = [50];
+
+            const adsgramTipsEn = [
+                "✨ Watch gives 25 Pts, Click gives 75 Pts bonus!", "✨ Watch gives 25 Pts, Click gives 50 Pts bonus!",
+                "✨ Watch gives 25 Pts, Click gives 25 Pts bonus!", "✨ Watch gives 15 Pts, Click gives 25 Pts bonus!",
+                "✨ Watch gives 15 Pts, Click gives 15 Pts bonus!"
+            ];
+            const adsgramTipsAr = [
+                "✨ المشاهدة تمنحك 25 نقطة، والنقر يمنحك 75 نقطة بونص إضافية!", "✨ المشاهدة تمنحك 25 نقطة، والنقر يمنحك 50 نقطة بونص إضافية!",
+                "✨ المشاهدة تمنحك 25 نقطة، والنقر يمنحك 25 نقطة بونص إضافية!", "✨ المشاهدة تمنحك 15 نقطة، والنقر يمنحك 25 نقطة بونص إضافية!",
+                "✨ المشاهدة تمنحك 15 نقطة، والنقر يمنحك 15 نقطة بونص إضافية!"
+            ];
+
+            const tonadsTipsEn = [
+                "✨ Watch gives 20 Pts, Click gives 60 Pts bonus!", "✨ Watch gives 20 Pts, Click gives 30 Pts bonus!",
+                "✨ Watch gives 15 Pts, Click gives 15 Pts bonus!", "✨ Watch gives 10 Pts, Click gives 10 Pts bonus!",
+                "✨ Watch gives 5 Pts, Click gives 10 Pts bonus!"
+            ];
+            const tonadsTipsAr = [
+                "✨ المشاهدة تمنحك 20 نقطة، والنقر يمنحك 60 نقطة بونص إضافية!", "✨ المشاهدة تمنحك 20 نقطة، والنقر يمنحك 30 نقطة بونص إضافية!",
+                "✨ المشاهدة تمنحك 15 نقطة، والنقر يمنحك 15 نقطة بونص إضافية!", "✨ المشاهدة تمنحك 10 نقاط، والنقر يمنحك 10 نقاط بونص إضافية!",
+                "✨ المشاهدة تمنحك 5 نقاط، والنقر يمنحك 10 نقاط بونص إضافية!"
+            ];
+
+            updateAdCard("adsgram", states["AdsGram"] || {index: 0, cooldown: false, remaining_seconds: 0}, 5, adsgramPoints, adsgramTipsEn, adsgramTipsAr);
+            updateAdCard("richads", states["RichAdsGram"] || {index: 0, cooldown: false, remaining_seconds: 0}, 5, richadsPoints, null, null);
+            updateAdCard("monetag", states["Monetag"] || {index: 0, cooldown: false, remaining_seconds: 0}, 4, monetagPoints, null, null);
+            updateAdCard("tonads", states["TonAds"] || {index: 0, cooldown: false, remaining_seconds: 0}, 5, tonadsPoints, tonadsTipsEn, tonadsTipsAr);
+            updateAdCard("admaven", states["AdMaven"] || {index: 0, cooldown: false, remaining_seconds: 0}, 1, admavenPoints, null, null);
+            updateAdCard("hivepost", states["HivePost"] || {index: 0, cooldown: false, remaining_seconds: 0}, 1, hivepostPoints, null, null);
+            
+            const spinState = states["SpinWheel"] || {
+    cooldown: false,
+    remaining_seconds: 0
+};
+
+startSpinCooldown(
+    spinState.cooldown ? spinState.remaining_seconds : 0
+);
+        }
+
+        function updateAdCard(id, state, maxCount, pointArray, tipsEn, tipsAr) {
+            const countBtn = document.getElementById(`${id}-count`);
+            const bonusText = document.getElementById(`${id}-bonus-text`);
+            const descText = document.getElementById(`${id}-desc-text`);
+            const mainBtn = document.getElementById(`${id}-btn`);
+            
+            if(countBtn) countBtn.innerText = `${state.index}/${maxCount} ${currentLang === 'en' ? 'Ads' : 'إعلانات'}`;
+            
+            if(state.cooldown) {
+                if(mainBtn) { mainBtn.classList.add('disabled-btn'); mainBtn.innerText = `⏳ ${formatTime(state.remaining_seconds)}`; }
+                if(bonusText) bonusText.innerText = currentLang === 'en' ? "⚡ Sector Locked" : "⚡ القسم مقفل مؤقتاً";
+                return;
+            }
+            if(state.index >= maxCount) {
+                if(mainBtn) { mainBtn.classList.add('disabled-btn'); mainBtn.innerText = currentLang === 'en' ? "🚫 Complete" : "🚫 مكتمل"; }
+                return;
+            }
+            const currentPoints = pointArray[state.index] || pointArray[pointArray.length - 1];
+            if(bonusText) bonusText.innerText = currentLang === 'en' ? `💰 Reward: ${currentPoints} Pts` : `💰 المكافأة: ${currentPoints} نقطة`;
+            if(descText && tipsEn && tipsAr) { descText.innerText = currentLang === 'en' ? tipsEn[state.index] : tipsAr[state.index]; }
+        }
+        function processAdClick(platform, type) {
+            const mainBtn = document.getElementById(`${platform.toLowerCase()}-btn`);
+            
+            if(type === 'video') {
+                alert(currentLang === 'en' ? `Launching video block: ${platform}` : `جاري تشغيل إعلان الفيديو الآمن: ${platform}`);
+                sendRewardToken(platform, type, false);
+                
+                // ⏳ سيستم الـ 15 ثانية كولد داون الذكي بين الإعلانات الإجبارية لمنع الحظر
+                if(mainBtn) {
+                    mainBtn.classList.add('disabled-btn');
+                    let intraCooldown = 15;
+                    mainBtn.innerText = currentLang === 'en' ? `⏳ Wait ${intraCooldown}s` : `⏳ انتظر ${intraCooldown}ث`;
+                    
+                    let intraTimer = setInterval(() => {
+                        intraCooldown--;
+                        if(intraCooldown > 0) {
+                            mainBtn.innerText = currentLang === 'en' ? `⏳ Wait ${intraCooldown}s` : `⏳ انتظر ${intraCooldown}ث`;
+                        } else {
+                            clearInterval(intraTimer);
+                            mainBtn.classList.remove('disabled-btn');
+                            fetchUserData();
+                        }
+                    }, 1000);
+                }
+            } else {
+                alert(currentLang === 'en' ? "Opening ad tunnel. Wait 10 seconds inside app to verify reward!" : "جاري فتح نفق الرابط الإعلاني. انتظر 10 ثوانٍ داخل البوت لنيل مكافأتك!");
+                const timerDiv = document.getElementById(`${platform.toLowerCase()}-timer`);
+                const verifyBtn = document.getElementById(`${platform.toLowerCase()}-verify-btn`);
+                
+                if(mainBtn) mainBtn.style.display = 'none';
+                if(timerDiv) {
+                    timerDiv.style.display = 'block';
+                    let timeLeft = 10;
+                    timerDiv.innerText = currentLang === 'en' ? `⏳ Verification Timer: ${timeLeft}s` : `⏳ عداد التحقق: ${timeLeft}ث`;
+                    
+                    activeTimers[platform] = setInterval(() => {
+                        timeLeft--;
+                        if(timeLeft > 0) { timerDiv.innerText = currentLang === 'en' ? `⏳ Verification Timer: ${timeLeft}s` : `⏳ عداد التحقق: ${timeLeft}ث`; }
+                        else { clearInterval(activeTimers[platform]); timerDiv.style.display = 'none'; if(verifyBtn) verifyBtn.style.display = 'block'; }
+                    }, 1000);
+                }
+                tg.openLink("https://monetag.com"); 
+            }
+        }
+
+        function verifyLinkWormhole(platform) {
+            const verifyBtn = document.getElementById(`${platform.toLowerCase()}-verify-btn`);
+            const mainBtn = document.getElementById(`${platform.toLowerCase()}-btn`);
+            if(verifyBtn) verifyBtn.style.display = 'none';
+            if(mainBtn) mainBtn.style.display = 'block';
+            sendRewardToken(platform, 'link', false);
+        }
+async function startCosmicSpin() {
+    const btn = document.getElementById('spin-launch-btn');
+    const planet = document.getElementById('saturn-planet');
+
+    if (btn.classList.contains('disabled-btn')) return;
+
+    if (!tg || !tg.initData) {
+        alert('Please open ZettaDrop from Telegram.');
+        return;
+    }
+
+    btn.classList.add('disabled-btn');
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/spin`, {
+            method: 'POST',
+            headers: {
+                'X-Telegram-Init-Data': tg.initData
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            if (response.status === 429) {
+                const seconds = result.remaining_seconds || 0;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+
+                alert(`⏳ Your next spin is available in ${hours}h ${minutes}m.`);
+            } else {
+                alert(result.error || 'Spin failed. Please try again.');
+            }
+
+            return;
+        }
+
+        const luckyIndex = Number(result.index);
+        const finalGift = Number(result.reward);
+
+        if (
+            !Number.isInteger(luckyIndex) ||
+            luckyIndex < 0 ||
+            luckyIndex > 4 ||
+            ![5, 10, 15, 50, 100].includes(finalGift)
+        ) {
+            alert('Invalid spin result. Please contact support.');
+            return;
+        }
+
+        startSpinCooldown(result.next_spin_in || 43200);
+
+        // Reset the wheel without showing a reverse animation
+        planet.style.transition = 'none';
+        planet.style.transform = 'rotate(0deg)';
+        void planet.offsetWidth;
+
+        // Rotate to the server-selected reward
+        planet.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.1, 1)';
+
+        const degrees = 1800 - (luckyIndex * 72);
+        planet.style.transform = `rotate(${degrees}deg)`;
+
+        await new Promise(resolve => setTimeout(resolve, 4200));
+
+        alert(
+            currentLang === 'en'
+                ? `🎉 Congratulations! You won ${finalGift} Points!`
+                : `🎉 مبروك! ربحت ${finalGift} نقطة!`
+        );
+
+        await fetchUserData();
+
+    } catch (error) {
+        console.error('Spin error:', error);
+        alert('Connection error. Please try again.');
+} finally {
+    if (spinRemainingSeconds <= 0) {
+        btn.classList.remove('disabled-btn');
+    }
+}
+}
+
+async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
+        try {
+        const response = await fetch(`${BACKEND_URL}/api/reward`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({
+                platform: platform
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(result.error || 'Reward could not be added');
+            return;
+        }
+
+        alert(`Congratulations! You earned ${result.points_added} points!`);
+        await fetchUserData();
+
+    } catch (e) {
+        console.error('Reward error:', e);
+        alert('Connection error. Please try again.');
+    }
+}
+
+        async function submitWithdraw() {
+            const addr = document.getElementById('wallet-input').value;
+            const network = document.getElementById('network-select').value;
+            if(!addr || !network) { alert(currentLang === 'en' ? "Please input a valid address and network!" : "الرجاء إدخال عنوان محفظة وشبكة تحويل صحيحة!"); return; }
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/withdraw`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: userId, address: addr, network: network }) });
+                const result = await response.json();
+                if(result.success) { alert(currentLang === 'en' ? "Points deducted immediately from your screen balance!" : "تم تسجيل طلبك بأمان! وتم خصم وتصفير رصيد نقاطك من الشاشة فوراً."); fetchUserData(); }
+                else { alert(currentLang === 'en' ? "Insufficient energy points!" : "رصيد نقاطك الحالي غير كافٍ، تحتاج 10,000 نقطة كحد أدنى!"); }
+            } catch(e) { alert("Core transmission failure."); }
+        }
+
+        function formatTime(seconds) { const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); const s = seconds % 60; return `${h}h ${m}m ${s}s`; }
+        
+        function switchTab(pageId, element) {
+    const targetPage = document.getElementById(pageId);
+
+    if (!targetPage || !element) {
+        console.error("Tab not found:", pageId);
+        return;
+    }
+
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(i => {
+        i.classList.remove('active');
+    });
+
+    targetPage.classList.add('active');
+
+    if (pageId === 'tasks-page') {
+        const extraPage = document.getElementById('tasks-page-extra');
+
+        if (extraPage) {
+            extraPage.classList.add('active');
+        }
+    }
+
+    element.classList.add('active');
+}
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            const t = translations[currentLang];
+            document.getElementById('total-energy-text').innerText = t.totalEnergy;
+            document.getElementById('core-text').innerText = t.corePoints;
+            document.getElementById('ref-title').innerText = t.refTitle;
+            document.getElementById('ref-desc').innerHTML = t.refDesc;
+            document.getElementById('copy-btn-text').innerText = t.copyBtn;
+            document.getElementById('crew-title').innerText = t.crewTitle;
+            document.getElementById('channels-title').innerText = t.chanTitle;
+            document.getElementById('mission-board-title').innerText = t.missionTitle;
+            document.getElementById('withdraw-title').innerText = t.withdrawTitle;
+            document.getElementById('withdraw-desc').innerHTML = t.withdrawDesc;
+            document.getElementById('wallet-input').placeholder = t.placeholder;
+            document.getElementById('select-net-placeholder').innerText = t.netPlaceholder;
+            document.getElementById('double-check-text').innerText = t.doubleCheck;
+            document.getElementById('fee-text').innerText = t.fee;
+            document.getElementById('bridge-btn-text').innerText = t.bridgeBtn;
+            document.getElementById('history-title').innerText = t.histTitle;
+            document.getElementById('tab-profile').innerText = t.tProfile;
+            document.getElementById('tab-missions').innerText = t.tMissions;
+            document.getElementById('tab-spin').innerText = t.tSpin;
+            document.getElementById('tab-wallet').innerText = t.tWallet;
+            fetchUserData();
+        }
+
+        fetchUserData();
+
+        function copyRefLink() {
+            const refInput = document.getElementById('ref-url');
+            const refLink = refInput.value;
+
+            navigator.clipboard.writeText(refLink)
+                .then(() => alert('Referral link copied!'))
+                .catch(() => {
+                    refInput.select();
+                    document.execCommand('copy');
+                    alert('Referral link copied!');
+                });
+        }
+    </script>
+</body>
+</html>
