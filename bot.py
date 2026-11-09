@@ -183,31 +183,40 @@ def get_user_data():
     if not telegram_user:
         return jsonify({"error": "Invalid Telegram authentication"}), 401
 
-    uid = str(telegram_user["id"])
+    uid = int(telegram_user["id"])
+    username = (
+        telegram_user.get("username")
+        or telegram_user.get("first_name")
+        or "Cosmo_User"
+    )
 
     conn = sqlite3.connect("zettadrop.db")
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT points, username, joined_news, joined_proofs FROM users WHERE user_id = ?",
-        (uid,)
-    )
+    # إنشاء سجل للمستخدم إذا لم يكن موجوداً
+    cursor.execute("""
+        INSERT OR IGNORE INTO users
+        (user_id, username, points, referred_by)
+        VALUES (?, ?, 0, 0)
+    """, (uid, username))
+
+    # تحديث الاسم فقط إذا كان فارغاً
+    cursor.execute("""
+        UPDATE users
+        SET username = ?
+        WHERE user_id = ? AND (username IS NULL OR username = '')
+    """, (username, uid))
+
+    conn.commit()
+
+    cursor.execute("""
+        SELECT points, username, joined_news, joined_proofs
+        FROM users WHERE user_id = ?
+    """, (uid,))
+
     user_res = cursor.fetchone()
 
-    if not user_res:
-        conn.close()
-        return jsonify({
-            "user_id": uid,
-            "points": 0,
-            "username": telegram_user.get("username") or telegram_user.get("first_name") or "Cosmo_User",
-            "joined_news": 0,
-            "joined_proofs": 0,
-            "crew": [],
-            "history": [],
-            "ad_states": {}
-        }), 200
-
-    points, username, joined_news, joined_proofs = user_res
+    points, db_username, joined_news, joined_proofs = user_res
 
     cursor.execute(
         "SELECT username FROM users WHERE referred_by = ?",
@@ -215,10 +224,13 @@ def get_user_data():
     )
     crew = [row[0] for row in cursor.fetchall()]
 
-    cursor.execute(
-        "SELECT network, points, status, date_text FROM withdrawals WHERE user_id = ? ORDER BY id DESC",
-        (uid,)
-    )
+    cursor.execute("""
+        SELECT network, points, status, date_text
+        FROM withdrawals
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (uid,))
+
     history = [
         {
             "network": r[0],
@@ -229,10 +241,11 @@ def get_user_data():
         for r in cursor.fetchall()
     ]
 
-    cursor.execute(
-        "SELECT platform, click_index, last_click_time FROM ad_logs WHERE user_id = ?",
-        (uid,)
-    )
+    cursor.execute("""
+        SELECT platform, click_index, last_click_time
+        FROM ad_logs WHERE user_id = ?
+    """, (uid,))
+
     logs = cursor.fetchall()
 
     ad_states = {}
@@ -268,19 +281,14 @@ def get_user_data():
                 "remaining_seconds": rem_seconds
             }
 
-        # Check the real SpinWheel cooldown
-    cursor.execute(
-        """
+    cursor.execute("""
         SELECT spun_at FROM spin_logs
         WHERE user_id = ?
         ORDER BY spun_at DESC
         LIMIT 1
-        """,
-        (uid,)
-    )
+    """)
 
     spin_log = cursor.fetchone()
-
     remaining = 0
 
     if spin_log:
@@ -294,19 +302,24 @@ def get_user_data():
         "cooldown": remaining > 0,
         "remaining_seconds": remaining
     }
+
+    # إنشاء رابط إحالة خاص بالمستخدم
+    bot_username = bot.get_me().username
+    ref_link = f"https://t.me/{bot_username}?start={uid}"
+
     conn.close()
 
     return jsonify({
         "user_id": uid,
+        "username": db_username or username,
         "points": points,
-        "username": username or telegram_user.get("first_name") or "Cosmo_User",
         "joined_news": joined_news,
         "joined_proofs": joined_proofs,
         "crew": crew,
         "history": history,
-        "ad_states": ad_states
+        "ad_states": ad_states,
+        "ref_link": ref_link
     })
-
 
 @app.route('/api/reward', methods=['POST'])
 def add_reward():

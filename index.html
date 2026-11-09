@@ -229,7 +229,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         userId = urlParams.get('id') || 0;
         globalUsername = urlParams.get('name') || "Cosmo_User";
-        const rawRef = urlParams.get('ref') || "https://t.me";
+        let rawRef = urlParams.get('ref') || "";
         
         document.getElementById('ref-url').value = rawRef;
 
@@ -277,6 +277,11 @@ if (!response.ok) {
 
 if (data.user_id) {
     userId = data.user_id;
+}
+
+if (data.ref_link) {
+    rawRef = data.ref_link;
+    document.getElementById('ref-url').value = rawRef;
 }
                 if(data) {
                     document.getElementById('username').innerText = data.username || globalUsername;
@@ -682,31 +687,117 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
     element.classList.add('active');
 }
 
-        function toggleLanguage() {
-            currentLang = currentLang === 'en' ? 'ar' : 'en';
-            const t = translations[currentLang];
-            document.getElementById('total-energy-text').innerText = t.totalEnergy;
-            document.getElementById('core-text').innerText = t.corePoints;
-            document.getElementById('ref-title').innerText = t.refTitle;
-            document.getElementById('ref-desc').innerHTML = t.refDesc;
-            document.getElementById('copy-btn-text').innerText = t.copyBtn;
-            document.getElementById('crew-title').innerText = t.crewTitle;
-            document.getElementById('channels-title').innerText = t.chanTitle;
-            document.getElementById('mission-board-title').innerText = t.missionTitle;
-            document.getElementById('withdraw-title').innerText = t.withdrawTitle;
-            document.getElementById('withdraw-desc').innerHTML = t.withdrawDesc;
-            document.getElementById('wallet-input').placeholder = t.placeholder;
-            document.getElementById('select-net-placeholder').innerText = t.netPlaceholder;
-            document.getElementById('double-check-text').innerText = t.doubleCheck;
-            document.getElementById('fee-text').innerText = t.fee;
-            document.getElementById('bridge-btn-text').innerText = t.bridgeBtn;
-            document.getElementById('history-title').innerText = t.histTitle;
-            document.getElementById('tab-profile').innerText = t.tProfile;
-            document.getElementById('tab-missions').innerText = t.tMissions;
-            document.getElementById('tab-spin').innerText = t.tSpin;
-            document.getElementById('tab-wallet').innerText = t.tWallet;
-            fetchUserData();
+        
+function toggleLanguage() {
+    currentLang = currentLang === 'en' ? 'ar' : 'en';
+    const ar = currentLang === 'ar';
+
+    const setText = (id, en, arText) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = ar ? arText : en;
+    };
+
+    setText('rank-text', 'Galaxy Rank: Pioneer', 'رتبة المجرة: رائد فضاء');
+    setText('total-energy-text', '⚡ Total Accumulated Energy', '⚡ إجمالي الطاقة المجمعة');
+    setText('core-text', 'Core Points', 'النقاط الأساسية');
+
+    setText('channels-title', '📢 Official Channels (+100 Pts Each)', '📢 القنوات الرسمية (+100 نقطة لكل قناة)');
+    setText('news-join-btn', 'Join', 'انضمام');
+    setText('proofs-join-btn', 'Join', 'انضمام');
+    setText('news-verify-btn', 'Verify', 'تحقق');
+    setText('proofs-verify-btn', 'Verify', 'تحقق');
+
+    setText('ref-title', '👥 Share & Multiply', '👥 شارك وضاعف نقاطك');
+    setText('ref-desc', 'Invite your crew to earn +50 Points per recruit!', 'ادعُ أصدقاءك لتحصل على 50 نقطة عن كل شخص!');
+    setText('copy-btn-text', 'Copy', 'نسخ');
+    setText('crew-title', '👥 Referral Crew', '👥 فريق الإحالة');
+    setText('no-crew-text', 'Your crew is currently empty.', 'فريقك فارغ حالياً');
+
+    setText('mission-board-title', '🛸 Quantum Mission Board', '🛸 لوحة المهام الكمية');
+
+    document.querySelectorAll('.next-ad-title').forEach(el => {
+        el.innerText = ar ? '🔵 الإعلان التالي' : '🔵 NEXT AD';
+    });
+
+    const adButtons = [
+        ['adsgram-btn', 'Watch Ad', 'شاهد الإعلان'],
+        ['richads-btn', 'Watch Ad', 'شاهد الإعلان'],
+        ['monetag-btn', 'Open Link', 'افتح الرابط'],
+        ['tonads-btn', 'Watch Ad', 'شاهد الإعلان'],
+        ['admaven-btn', 'Open Link', 'افتح الرابط'],
+        ['hivepost-btn', 'Open Link', 'افتح الرابط']
+    ];
+
+    adButtons.forEach(([id, en, arText]) => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('disabled-btn')) {
+            el.innerText = ar ? arText : en;
         }
+    });
+
+    const adDescriptions = {
+        'richads-desc-text': [
+            '✨ Watch the ad and claim your reward instantly.',
+            '✨ شاهد الإعلان واحصل على مكافأتك فوراً.'
+        ],
+        'monetag-desc-text': [
+            '⏳ Stay 10 seconds inside the link and press the reward button.',
+            '⏳ ابقَ داخل الرابط 10 ثوانٍ ثم اضغط زر المكافأة.'
+        ],
+        'admaven-desc-text': [
+            '⏳ Stay 10 seconds inside the link and press the reward button.',
+            '⏳ ابقَ داخل الرابط 10 ثوانٍ ثم اضغط زر المكافأة.'
+        ],
+        'hivepost-desc-text': [
+            '⏳ Stay 10 seconds inside the link and press the reward button.',
+            '⏳ ابقَ داخل الرابط 10 ثوانٍ ثم اضغط زر المكافأة.'
+        ]
+    };
+
+    Object.entries(adDescriptions).forEach(([id, values]) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = values[ar ? 1 : 0];
+    });
+
+    setText('spin-desc',
+        'Spin the cosmic wheel once every 12 hours for free!',
+        'لف عجلة الحظ مرة كل 12 ساعة مجاناً!'
+    );
+
+    setText('withdraw-title', '💳 Withdraw Station', '💳 محطة المحفظة');
+    setText('withdraw-desc',
+        'Minimum threshold required to bridge assets: 10,000 Points (≈ $0.10)',
+        'الحد الأدنى المطلوب: 10,000 نقطة (≈ $0.10)'
+    );
+
+    document.getElementById('wallet-input').placeholder =
+        ar ? 'أدخل عنوان محفظتك الرقمية' : 'Enter your Wallet Address';
+
+    setText('select-net-placeholder', 'Select Network Protocol', 'اختر شبكة التحويل');
+
+    setText('double-check-text',
+        '⚠️ Double check your wallet address! Any error will result in permanent loss of assets.',
+        '⚠️ تأكد جيداً من عنوان المحفظة قبل استخدامه.'
+    );
+
+    setText('fee-text',
+        '⚠️ Note: Network transfer fees will be automatically deducted from your payout balance.',
+        '⚠️ قد تُطبّق رسوم شبكة على التحويل.'
+    );
+
+    setText('bridge-btn-text', 'Withdraw Now', 'متابعة');
+    setText('history-title', '📜 Withdrawal History', '📜 سجل العمليات');
+
+    setText('tab-profile', '🪐 Profile', '🪐 البروفايل');
+    setText('tab-missions', '💎 Missions', '💎 المهمات');
+    setText('tab-spin', '🎰 Spin', '🎰 الحظ');
+    setText('tab-wallet', '💳 Wallet', '💳 المحفظة');
+
+    document.documentElement.lang = ar ? 'ar' : 'en';
+    document.documentElement.dir = ar ? 'rtl' : 'ltr';
+
+    fetchUserData();
+}
 
         fetchUserData();
 
