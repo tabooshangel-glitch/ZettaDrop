@@ -31,15 +31,16 @@ def validate_telegram_data(init_data):
             for key, value in sorted(data.items())
         )
 
+        # Correct Telegram Mini App HMAC validation
         secret_key = hmac.new(
-    TOKEN.encode(),
-    b"WebAppData",
-    hashlib.sha256
-).digest()
+            b"WebAppData",
+            TOKEN.encode("utf-8"),
+            hashlib.sha256
+        ).digest()
 
         calculated_hash = hmac.new(
             secret_key,
-            data_check_string.encode(),
+            data_check_string.encode("utf-8"),
             hashlib.sha256
         ).hexdigest()
 
@@ -47,6 +48,7 @@ def validate_telegram_data(init_data):
             return None
 
         auth_date = int(data.get("auth_date", 0))
+
         if time.time() - auth_date > 86400 or auth_date > time.time() + 60:
             return None
 
