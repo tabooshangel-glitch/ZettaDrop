@@ -286,7 +286,7 @@ def get_user_data():
         WHERE user_id = ?
         ORDER BY spun_at DESC
         LIMIT 1
-    """)
+    """, (user_id,))
 
     spin_log = cursor.fetchone()
     remaining = 0
