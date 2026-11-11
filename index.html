@@ -169,13 +169,22 @@
                 <p id="withdraw-desc" style="color: #a19bb0; font-size: 12px; margin-bottom: 15px;">Minimum threshold required to bridge assets: <span style='color:#00ff88; font-weight:bold;'>10,000 Points</span> (≈ $0.10)</p>
                 
                 <input type="text" id="wallet-input" placeholder="Enter your Wallet Address" class="space-input">
+
+                <input
+                    type="number"
+                    id="withdraw-points"
+                    class="space-input"
+                    placeholder="Enter Points Amount (Minimum 10,000)"
+                    min="10000"
+                    step="1"
+                >
+
                 <select id="network-select" class="space-input space-select">
                     <option id="select-net-placeholder" value="" disabled selected>Select Network Protocol</option>
                     <option value="TON">TON Network (Toncoin / USDT)</option>
                     <option value="TRC20">TRON Network (USDT-TRC20)</option>
                     <option value="BEP20">BNB Smart Chain (USDT-BEP20)</option>
                 </select>
-
                 <p id="double-check-text" class="double-check-warning">⚠️ Double check your wallet address! Any error will result in permanent loss of assets.</p>
                 <p id="fee-text" class="fee-warning">⚠️ Note: Network transfer fees will be automatically deducted from your payout balance.</p>
 
@@ -299,18 +308,44 @@ if (data.ref_link) {
                         crewContainer.innerHTML = `<p id="no-crew-text" style="color: #555; font-size: 11px; margin: 5px 0;">${translations[currentLang].noCrew}</p>`;
                     }
                     
+
                     const histContainer = document.getElementById('history-container');
-                    if(data.history && data.history.length > 0) {
-                        histContainer.innerHTML = data.history.map(item => `
-                            <div class='history-item'>
-                                <div><span class='hist-net'>${item.network}</span><br><span class='hist-date'>${item.date}</span></div>
-                                <div style='text-align: right;'><span class='hist-points'>${item.points} Pts</span><br><span class='status-badge ${item.status.toLowerCase()}'>${item.status}</span></div>
-                            </div>
-                        `).join('');
+
+                    if (data.history && data.history.length > 0) {
+                        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            '"': '&quot;',
+                            "'": '&#39;'
+                        }[char]));
+
+                        histContainer.innerHTML = data.history.map(item => {
+                            const status = String(item.status || 'PENDING').toUpperCase();
+                            const statusClass = status.toLowerCase();
+
+                            return `
+                                <div class="history-item">
+                                    <div>
+                                        <span class="hist-net">${esc(item.network)}</span><br>
+                                        <span class="hist-date">${esc(item.date)}</span><br>
+                                        <span class="hist-date">Request #${esc(item.id)}</span>
+                                        ${status === 'REJECTED' && item.reason
+                                            ? `<br><span class="hist-date">Reason: ${esc(item.reason)}</span>`
+                                            : ''}
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span class="hist-points">${esc(item.points)} Pts</span><br>
+                                        <span class="status-badge ${statusClass}">${esc(status)}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
                     } else {
                         histContainer.innerHTML = `<p id="no-history-text" style="color: #777; font-size: 13px; text-align: center; margin: 10px 0;">${translations[currentLang].noHist}</p>`;
                     }
-                    
+              
                     renderQuantumAdBoard(data.ad_states);
                 }
             } catch (e) { console.log("Core link failure", e); }
@@ -645,15 +680,69 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
 }
 
         async function submitWithdraw() {
-            const addr = document.getElementById('wallet-input').value;
+            const addr = document.getElementById('wallet-input').value.trim();
             const network = document.getElementById('network-select').value;
-            if(!addr || !network) { alert(currentLang === 'en' ? "Please input a valid address and network!" : "الرجاء إدخال عنوان محفظة وشبكة تحويل صحيحة!"); return; }
+            const points = document.getElementById('withdraw-points').value.trim();
+
+            if (!addr || !network || !points) {
+                alert(currentLang === 'en'
+                    ? "Please fill in all withdrawal fields!"
+                    : "الرجاء تعبئة جميع حقول السحب!");
+                return;
+            }
+
+            if (!Number.isInteger(Number(points)) || Number(points) < 10000) {
+                alert(currentLang === 'en'
+                    ? "Minimum withdrawal is 10,000 points!"
+                    : "الحد الأدنى للسحب هو 10,000 نقطة!");
+                return;
+            }
+
+            if (!window.Telegram?.WebApp?.initData) {
+                alert("Please open ZettaDrop through Telegram.");
+                return;
+            }
+
             try {
-                const response = await fetch(`${BACKEND_URL}/api/withdraw`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: userId, address: addr, network: network }) });
+                const response = await fetch(`${BACKEND_URL}/api/withdraw`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': window.Telegram.WebApp.initData
+                    },
+                    body: JSON.stringify({
+                        address: addr,
+                        network: network,
+                        points: Number(points)
+                    })
+                });
+
                 const result = await response.json();
-                if(result.success) { alert(currentLang === 'en' ? "Points deducted immediately from your screen balance!" : "تم تسجيل طلبك بأمان! وتم خصم وتصفير رصيد نقاطك من الشاشة فوراً."); fetchUserData(); }
-                else { alert(currentLang === 'en' ? "Insufficient energy points!" : "رصيد نقاطك الحالي غير كافٍ، تحتاج 10,000 نقطة كحد أدنى!"); }
-            } catch(e) { alert("Core transmission failure."); }
+
+                if (response.ok && result.success) {
+                    alert(currentLang === 'en'
+                        ? "Your withdrawal request has been submitted successfully. Your request has been forwarded to the admin for review. Please allow up to 24 hours for your request to be reviewed."
+                        : "تم إرسال طلب السحب بنجاح وتحويله للمراجعة. يرجى الانتظار حتى 24 ساعة لمراجعة طلبك.");
+
+                    document.getElementById('wallet-input').value = '';
+                    document.getElementById('withdraw-points').value = '';
+                    document.getElementById('network-select').value = '';
+
+                    fetchUserData();
+                } else {
+                    const errorMessage = result.error || "Withdrawal request failed.";
+
+                    alert(currentLang === 'en'
+                        ? errorMessage
+                        : "تعذر إرسال طلب السحب. تأكدي من الرصيد والبيانات وحاولي مجدداً.");
+                }
+
+            } catch (e) {
+                console.error("Withdrawal error:", e);
+                alert(currentLang === 'en'
+                    ? "Connection error. Please try again."
+                    : "حدث خطأ بالاتصال، حاولي مرة أخرى.");
+            }
         }
 
         function formatTime(seconds) { const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); const s = seconds % 60; return `${h}h ${m}m ${s}s`; }

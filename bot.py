@@ -67,9 +67,11 @@ CHANNEL_NEWS_ID = "@Zettadropnews"
 CHANNEL_PROOFS_ID = "@Zettadropproofs"  
 
 # 💾 تأسيس قاعدة البيانات وهندسة جداول الحماية وسجل السحب المتصفر تلقائياً
+
 def init_db():
     conn = sqlite3.connect("zettadrop.db")
     cursor = conn.cursor()
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -80,6 +82,7 @@ def init_db():
             joined_proofs INTEGER DEFAULT 0
         )
     ''')
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS withdrawals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,10 +90,23 @@ def init_db():
             address TEXT,
             network TEXT,
             points INTEGER,
-            status TEXT DEFAULT 'Pending',
-            date_text TEXT
+            status TEXT DEFAULT 'PENDING',
+            date_text TEXT,
+            rejection_reason TEXT,
+            processed_at TEXT
         )
     ''')
+
+    # Safely add new columns to existing databases
+    cursor.execute("PRAGMA table_info(withdrawals)")
+    existing_columns = [row[1] for row in cursor.fetchall()]
+
+    if "rejection_reason" not in existing_columns:
+        cursor.execute("ALTER TABLE withdrawals ADD COLUMN rejection_reason TEXT")
+
+    if "processed_at" not in existing_columns:
+        cursor.execute("ALTER TABLE withdrawals ADD COLUMN processed_at TEXT")
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ad_logs (
             user_id INTEGER,
@@ -100,17 +116,20 @@ def init_db():
             PRIMARY KEY (user_id, platform)
         )
     ''')
+
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS spin_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        reward INTEGER NOT NULL,
-        spun_at INTEGER NOT NULL,
-        doubled INTEGER DEFAULT 0
-    )
-''')
+        CREATE TABLE IF NOT EXISTS spin_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            reward INTEGER NOT NULL,
+            spun_at INTEGER NOT NULL,
+            doubled INTEGER DEFAULT 0
+        )
+    ''')
+
     conn.commit()
     conn.close()
+
 
 init_db()
 
@@ -224,8 +243,9 @@ def get_user_data():
     )
     crew = [row[0] for row in cursor.fetchall()]
 
+
     cursor.execute("""
-        SELECT network, points, status, date_text
+        SELECT id, network, points, status, date_text, rejection_reason
         FROM withdrawals
         WHERE user_id = ?
         ORDER BY id DESC
@@ -233,10 +253,12 @@ def get_user_data():
 
     history = [
         {
-            "network": r[0],
-            "points": r[1],
-            "status": r[2],
-            "date": r[3]
+            "id": r[0],
+            "network": r[1],
+            "points": r[2],
+            "status": r[3],
+            "date": r[4],
+            "reason": r[5]
         }
         for r in cursor.fetchall()
     ]
@@ -504,33 +526,150 @@ def spin_wheel():
 
 @app.route('/api/withdraw', methods=['POST'])
 def request_withdraw():
-    data = request.json
-    uid = data.get('id')
-    address = data.get('address')
-    network = data.get('network')
-    
-    if not uid or not address or not network: return jsonify({"error": "Missing data"}), 400
-    
-    conn = sqlite3.connect("zettadrop.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT points FROM users WHERE user_id = ?", (uid,))
-    res = cursor.fetchone()
-    
-    if not res or res[0] < 10000:
-        conn.close()
-        return jsonify({"error": "Insufficient points"}), 400
-        
-    user_points = res[0]
-    today_str = datetime.date.today().isoformat()
-    
-    cursor.execute("UPDATE users SET points = 0 WHERE user_id = ?", (uid,))
-    cursor.execute("INSERT INTO withdrawals (user_id, address, network, points, status, date_text) VALUES (?, ?, ?, ?, 'Pending', ?)", 
-                   (uid, address, network, user_points, today_str))
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
+    data = request.get_json(silent=True) or {}
 
+    # Authenticate user through Telegram
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_user = validate_telegram_data(init_data)
 
+    if not telegram_user:
+        return jsonify({
+            "success": False,
+            "error": "Invalid Telegram authentication"
+        }), 401
+
+    uid = int(telegram_user["id"])
+    username = telegram_user.get("username") or "No username"
+
+    address = str(data.get("address", "")).strip()
+    network = str(data.get("network", "")).strip().upper()
+    raw_points = data.get("points")
+
+    # Validate withdrawal details
+    if not address or len(address) > 200:
+        return jsonify({
+            "success": False,
+            "error": "Invalid wallet address"
+        }), 400
+
+    if network not in ("TON", "TRC20", "BEP20"):
+        return jsonify({
+            "success": False,
+            "error": "Invalid network"
+        }), 400
+
+    if isinstance(raw_points, bool) or not str(raw_points).isdigit():
+        return jsonify({
+            "success": False,
+            "error": "Invalid points amount"
+        }), 400
+
+    requested_points = int(raw_points)
+
+    if requested_points < 10000:
+        return jsonify({
+            "success": False,
+            "error": "Minimum withdrawal is 10,000 points"
+        }), 400
+
+    # Admin must be configured privately on Render
+    try:
+        admin_id = int(os.environ.get("ADMIN_ID", ""))
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "Withdrawal service is not configured"
+        }), 503
+
+    conn = None
+
+    try:
+        conn = sqlite3.connect("zettadrop.db")
+        cursor = conn.cursor()
+        cursor.execute("BEGIN IMMEDIATE")
+
+        cursor.execute(
+            "SELECT points FROM users WHERE user_id = ?",
+            (uid,)
+        )
+        result = cursor.fetchone()
+
+        if not result or result[0] < requested_points:
+            conn.rollback()
+            return jsonify({
+                "success": False,
+                "error": "Insufficient points"
+            }), 400
+
+        today_str = datetime.date.today().isoformat()
+
+        # Deduct only the requested amount
+        cursor.execute(
+            "UPDATE users SET points = points - ? WHERE user_id = ? AND points >= ?",
+            (requested_points, uid, requested_points)
+        )
+
+        if cursor.rowcount != 1:
+            conn.rollback()
+            return jsonify({
+                "success": False,
+                "error": "Insufficient points"
+            }), 400
+
+        cursor.execute("""
+            INSERT INTO withdrawals
+            (user_id, address, network, points, status, date_text)
+            VALUES (?, ?, ?, ?, 'PENDING', ?)
+        """, (
+            uid,
+            address,
+            network,
+            requested_points,
+            today_str
+        ))
+
+        request_id = cursor.lastrowid
+
+        # Notify admin before committing the request
+        admin_message = (
+            "NEW WITHDRAWAL REQUEST\n\n"
+            f"Request ID: #{request_id}\n"
+            f"User ID: {uid}\n"
+            f"Username: @{username}\n"
+            f"Points: {requested_points:,}\n"
+            f"Network: {network}\n"
+            f"Wallet Address: {address}\n"
+            "Status: PENDING"
+        )
+
+        bot.send_message(
+            chat_id=admin_id,
+            text=admin_message
+        )
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "status": "PENDING"
+        })
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        print(f"Withdrawal request error: {e}")
+
+        return jsonify({
+            "success": False,
+            "error": "Could not submit withdrawal request"
+        }), 503
+
+    finally:
+        if conn:
+            conn.close()
+  
 @app.route('/api/verify_channel', methods=['POST'])
 def verify_telegram_channel():
     data = request.get_json(silent=True) or {}
@@ -604,7 +743,171 @@ def verify_telegram_channel():
         if 'conn' in locals():
             conn.close()
 
-     
+
+@bot.message_handler(commands=['approve'])
+def approve_withdrawal(message):
+    admin_id = os.environ.get("ADMIN_ID")
+
+    if not admin_id or str(message.from_user.id) != admin_id:
+        return
+
+    parts = message.text.split()
+
+    if len(parts) != 2 or not parts[1].isdigit():
+        bot.reply_to(message, "Usage: /approve REQUEST_ID")
+        return
+
+    request_id = int(parts[1])
+    conn = sqlite3.connect("zettadrop.db")
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("BEGIN IMMEDIATE")
+
+        cursor.execute("""
+            SELECT user_id, points, status
+            FROM withdrawals WHERE id = ?
+        """, (request_id,))
+
+        row = cursor.fetchone()
+
+        if not row:
+            conn.rollback()
+            bot.reply_to(message, "Withdrawal request not found.")
+            return
+
+        uid, points, status = row
+
+        if status.upper() != "PENDING":
+            conn.rollback()
+            bot.reply_to(message, f"Request #{request_id} was already processed.")
+            return
+
+        cursor.execute("""
+            UPDATE withdrawals
+            SET status = 'SUCCESS', processed_at = ?
+            WHERE id = ? AND UPPER(status) = 'PENDING'
+        """, (datetime.datetime.utcnow().isoformat(), request_id))
+
+        if cursor.rowcount != 1:
+            conn.rollback()
+            bot.reply_to(message, "Request could not be processed.")
+            return
+
+        conn.commit()
+
+        bot.reply_to(
+            message,
+            f"Request #{request_id} approved successfully."
+        )
+
+        try:
+            bot.send_message(
+                uid,
+                f"Your withdrawal request #{request_id} has been approved. Your payment has been processed."
+            )
+        except Exception as e:
+            print(f"User approval notification error: {e}")
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Withdrawal approval error: {e}")
+        bot.reply_to(message, "Could not approve this request.")
+
+    finally:
+        conn.close()
+
+
+@bot.message_handler(commands=['reject'])
+def reject_withdrawal(message):
+    admin_id = os.environ.get("ADMIN_ID")
+
+    if not admin_id or str(message.from_user.id) != admin_id:
+        return
+
+    parts = message.text.split(maxsplit=2)
+
+    if len(parts) < 3 or not parts[1].isdigit() or not parts[2].strip():
+        bot.reply_to(
+            message,
+            "Usage: /reject REQUEST_ID REASON"
+        )
+        return
+
+    request_id = int(parts[1])
+    reason = parts[2].strip()[:500]
+
+    conn = sqlite3.connect("zettadrop.db")
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("BEGIN IMMEDIATE")
+
+        cursor.execute("""
+            SELECT user_id, points, status
+            FROM withdrawals WHERE id = ?
+        """, (request_id,))
+
+        row = cursor.fetchone()
+
+        if not row:
+            conn.rollback()
+            bot.reply_to(message, "Withdrawal request not found.")
+            return
+
+        uid, points, status = row
+
+        if status.upper() != "PENDING":
+            conn.rollback()
+            bot.reply_to(message, f"Request #{request_id} was already processed.")
+            return
+
+        cursor.execute("""
+            UPDATE withdrawals
+            SET status = 'REJECTED',
+                rejection_reason = ?,
+                processed_at = ?
+            WHERE id = ? AND UPPER(status) = 'PENDING'
+        """, (
+            reason,
+            datetime.datetime.utcnow().isoformat(),
+            request_id
+        ))
+
+        if cursor.rowcount != 1:
+            conn.rollback()
+            bot.reply_to(message, "Request could not be processed.")
+            return
+
+        cursor.execute("""
+            UPDATE users
+            SET points = points + ?
+            WHERE user_id = ?
+        """, (points, uid))
+
+        conn.commit()
+
+        bot.reply_to(
+            message,
+            f"Request #{request_id} rejected. {points:,} points returned."
+        )
+
+        try:
+            bot.send_message(
+                uid,
+                f"Your withdrawal request #{request_id} has been rejected.\nReason: {reason}\n{points:,} points have been returned to your balance."
+            )
+        except Exception as e:
+            print(f"User rejection notification error: {e}")
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Withdrawal rejection error: {e}")
+        bot.reply_to(message, "Could not reject this request.")
+
+    finally:
+        conn.close()
+
 def run_flask():
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8000)))
 
