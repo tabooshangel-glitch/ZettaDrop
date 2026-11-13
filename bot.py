@@ -566,10 +566,10 @@ def request_withdraw():
 
     requested_points = int(raw_points)
 
-    if requested_points < 10000:
+    if requested_points < 200:
         return jsonify({
             "success": False,
-            "error": "Minimum withdrawal is 10,000 points"
+            "error": "Minimum withdrawal is 200 points"
         }), 400
 
     # Admin must be configured privately on Render

@@ -174,8 +174,8 @@
                     type="number"
                     id="withdraw-points"
                     class="space-input"
-                    placeholder="Enter Points Amount (Minimum 10,000)"
-                    min="10000"
+                    placeholder="Enter Points Amount (Minimum 200)"
+                    min="200"
                     step="1"
                 >
 
@@ -691,10 +691,10 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
                 return;
             }
 
-            if (!Number.isInteger(Number(points)) || Number(points) < 10000) {
+            if (!Number.isInteger(Number(points)) || Number(points) < 200) {
                 alert(currentLang === 'en'
-                    ? "Minimum withdrawal is 10,000 points!"
-                    : "الحد الأدنى للسحب هو 10,000 نقطة!");
+                    ? "Minimum withdrawal is 200 points!"
+                    : "الحد الأدنى للسحب هو 200 نقطة!");
                 return;
             }
 
