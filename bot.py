@@ -566,10 +566,10 @@ def request_withdraw():
 
     requested_points = int(raw_points)
 
-    if requested_points < 200:
+    if requested_points < 10000:
         return jsonify({
             "success": False,
-            "error": "Minimum withdrawal is 200 points"
+            "error": "Minimum withdrawal is 10000 points"
         }), 400
 
     # Admin must be configured privately on Render
@@ -804,7 +804,7 @@ def approve_withdrawal(message):
         try:
             bot.send_message(
                 uid,
-                f"Your withdrawal request #{request_id} has been approved. Your payment has been processed."
+                f"Your withdrawal request #{request_id} has been approved successfully. Your payment has been sent. 🎉"
             )
         except Exception as e:
             print(f"User approval notification error: {e}")

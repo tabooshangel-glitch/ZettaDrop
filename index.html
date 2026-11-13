@@ -174,8 +174,8 @@
                     type="number"
                     id="withdraw-points"
                     class="space-input"
-                    placeholder="Enter Points Amount (Minimum 200)"
-                    min="200"
+                    placeholder="Enter Points Amount (Minimum 10000)"
+                    min="10000"
                     step="1"
                 >
 
@@ -296,7 +296,7 @@ if (data.ref_link) {
                     document.getElementById('username').innerText = data.username || globalUsername;
                     document.getElementById('user-id').innerText = "ID: " + userId;
                     document.getElementById('points').innerText = data.points;
-                    document.getElementById('usd').innerText = (data.points / 100000).toFixed(2);
+                    document.getElementById('usd').innerText = (data.points / 100000).toFixed(6);
                     
                     updateChannelRow('news', data.joined_news);
                     updateChannelRow('proofs', data.joined_proofs);
@@ -691,10 +691,10 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
                 return;
             }
 
-            if (!Number.isInteger(Number(points)) || Number(points) < 200) {
+            if (!Number.isInteger(Number(points)) || Number(points) < 10000) {
                 alert(currentLang === 'en'
-                    ? "Minimum withdrawal is 200 points!"
-                    : "الحد الأدنى للسحب هو 200 نقطة!");
+                    ? "Minimum withdrawal is 10000 points!"
+                    : "الحد الأدنى للسحب هو 10000 نقطة!");
                 return;
             }
 
