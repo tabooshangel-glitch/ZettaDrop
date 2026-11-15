@@ -126,7 +126,16 @@ def init_db():
             doubled INTEGER DEFAULT 0
         )
     ''')
-
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS reward_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            points INTEGER NOT NULL,
+            event_key TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -161,15 +170,37 @@ def welcome(message):
     user_exists = cursor.fetchone()
     
     if not user_exists:
-        cursor.execute("INSERT INTO users (user_id, username, points, referred_by) VALUES (?, ?, ?, ?)", 
-                       (user_id, user_name, 0, referred_by))
-        conn.commit()
-        
+        cursor.execute(
+            "INSERT INTO users (user_id, username, points, referred_by) VALUES (?, ?, ?, ?)",
+            (user_id, user_name, 0, referred_by)
+        )
+
+        referral_rewarded = False
+
         if referred_by != 0:
-            cursor.execute("UPDATE users SET points = points + 50 WHERE user_id = ?", (referred_by,))
-            conn.commit()
+            cursor.execute(
+                "UPDATE users SET points = points + 50 WHERE user_id = ?",
+                (referred_by,)
+            )
+
+            if cursor.rowcount == 1:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO reward_history
+                    (user_id, source, points, event_key, created_at)
+                    VALUES (?, 'Referral', 50, ?, datetime('now'))
+                """, (referred_by, f"referral:{user_id}"))
+
+                referral_rewarded = True
+
+        conn.commit()
+
+        if referral_rewarded:
             try:
-                bot.send_message(referred_by, f"🎉 New crew member joined through your link! **+50 Points** added to your balance.", parse_mode="Markdown")
+                bot.send_message(
+                    referred_by,
+                    "🎉 New crew member joined through your link! **+50 Points** added to your balance.",
+                    parse_mode="Markdown"
+                )
             except Exception:
                 pass
     conn.close()
@@ -342,6 +373,44 @@ def get_user_data():
         "ad_states": ad_states,
         "ref_link": ref_link
     })
+    
+@app.route('/api/rewards', methods=['GET'])
+def get_rewards_history():
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_user = validate_telegram_data(init_data)
+
+    if not telegram_user:
+        return jsonify({"error": "Invalid Telegram authentication"}), 401
+
+    uid = int(telegram_user["id"])
+
+    conn = sqlite3.connect("zettadrop.db")
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT source, points, created_at
+            FROM reward_history
+            WHERE user_id = ?
+            ORDER BY id DESC
+        """, (uid,))
+
+        rewards = [
+            {
+                "source": row[0],
+                "points": row[1],
+                "date": row[2]
+            }
+            for row in cursor.fetchall()
+        ]
+
+        return jsonify({
+            "success": True,
+            "rewards": rewards
+        })
+
+    finally:
+        conn.close()    
 
 @app.route('/api/reward', methods=['POST'])
 def add_reward():
@@ -404,6 +473,15 @@ def add_reward():
         cursor.execute(
             "UPDATE users SET points = points + ? WHERE user_id = ?",
             (points_to_add, uid)
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO reward_history
+            (user_id, source, points, event_key, created_at)
+            VALUES (?, ?, ?, ?, datetime('now'))
+            """,
+            (uid, platform, points_to_add, f"ad:{uid}:{platform}:{click_index + 1}")
         )
 
         if log_res:
@@ -492,7 +570,6 @@ def spin_wheel():
 
         lucky_index = secrets.choice(pool)
         final_gift = rewards[lucky_index]
-
         cursor.execute(
             """
             INSERT INTO spin_logs
@@ -502,9 +579,20 @@ def spin_wheel():
             (uid, final_gift, now)
         )
 
+        spin_id = cursor.lastrowid
+
         cursor.execute(
             "UPDATE users SET points = points + ? WHERE user_id = ?",
             (final_gift, uid)
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO reward_history
+            (user_id, source, points, event_key, created_at)
+            VALUES (?, 'Spin', ?, ?, datetime('now'))
+            """,
+            (uid, final_gift, f"spin:{spin_id}")
         )
 
         conn.commit()
@@ -706,33 +794,48 @@ def verify_telegram_channel():
                 "error": "Not a member"
             }), 403
 
-        conn = sqlite3.connect("zettadrop.db")
+        conn = sqlite3.connect("zettadrop.db", timeout=10)
         cursor = conn.cursor()
+        cursor.execute("BEGIN IMMEDIATE")
 
         field = "joined_news" if chan_type == "news" else "joined_proofs"
 
         cursor.execute(
-            f"SELECT {field} FROM users WHERE user_id = ?",
+            "SELECT user_id FROM users WHERE user_id = ?",
             (uid,)
         )
-        status_res = cursor.fetchone()
 
-        if not status_res:
+        if not cursor.fetchone():
+            conn.rollback()
             return jsonify({
                 "success": False,
                 "error": "User not found"
             }), 404
 
-        if status_res[0] == 0:
+        cursor.execute(
+            f"UPDATE users SET points = points + 100, {field} = 1 "
+            f"WHERE user_id = ? AND {field} = 0",
+            (uid,)
+        )
+
+        if cursor.rowcount == 1:
             cursor.execute(
-                f"UPDATE users SET points = points + 100, {field} = 1 WHERE user_id = ?",
-                (uid,)
+                """
+                INSERT INTO reward_history
+                (user_id, source, points, event_key, created_at)
+                VALUES (?, ?, 100, ?, datetime('now'))
+                """,
+                (uid, f"{chan_type.title()} Channel", f"channel:{uid}:{chan_type}")
             )
-            conn.commit()
+
+        conn.commit()
 
         return jsonify({"success": True})
 
     except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+
         print(f"Channel verification error: {e}")
         return jsonify({
             "success": False,
@@ -742,7 +845,6 @@ def verify_telegram_channel():
     finally:
         if 'conn' in locals():
             conn.close()
-
 
 @bot.message_handler(commands=['approve'])
 def approve_withdrawal(message):

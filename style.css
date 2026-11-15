@@ -200,3 +200,42 @@ h2 {
 
 @keyframes spaceMoveSlow { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 @keyframes warpSpeed { from { opacity: 0; transform: scale(0.98) translateY(5px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+/* 🎁 Rewards History Styling */
+.reward-history-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+    min-height: 80px;
+}
+
+.reward-history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 242, 254, 0.12);
+}
+
+.reward-history-source {
+    font-size: 14px;
+    font-weight: bold;
+    color: #e0dbe8;
+}
+
+.reward-history-points {
+    font-size: 13px;
+    font-weight: bold;
+    color: #00ff88;
+}
+
+.reward-history-date {
+    font-size: 11px;
+    color: #878195;
+}
+
+#rewards-back-btn {
+    margin-top: 15px;
+}

@@ -160,6 +160,15 @@
                     <button id="hivepost-verify-btn" class="action-btn-card verify-bg" style="display:none;" onclick="verifyLinkWormhole('HivePost')">Verify Reward</button>
                 </div>
             </div>
+            <button
+    id="rewards-history-btn"
+    class="action-btn ref-btn"
+    style="margin-top:20px;"
+    onclick="openRewardsHistory()"
+>
+    🎁 Rewards History
+</button>
+
         </div>
 
         <!-- 💳 التبويب الثالث: محطة السحب والمحفظة (Wallet Tab) -->
@@ -193,6 +202,26 @@
 
             <div id="history-title" class="section-title">📜 Withdrawal History</div>
             <div class="space-card history-card" id="history-container"></div>
+        </div>
+                <!-- 🎁 Rewards History Page -->
+        <div id="rewards-page" class="page">
+            <div id="rewards-title" class="section-title">
+                🎁 Rewards History
+            </div>
+
+            <div class="space-card reward-history-card">
+                <div id="rewards-history-container">
+                    Loading rewards...
+                </div>
+            </div>
+
+            <button
+                id="rewards-back-btn"
+                class="action-btn ref-btn"
+                onclick="backToMissions()"
+            >
+                ← Back to Missions
+            </button>
         </div>
         <!-- 🎰 التبويب الرابع: عجلة حظ كوكب زحل الكونية المستقلة (Spin Tab) -->
         <div id="spin-page" class="page">
@@ -775,7 +804,99 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
 
     element.classList.add('active');
 }
+async function openRewardsHistory() {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
 
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    document.getElementById('rewards-page').classList.add('active');
+    document.getElementById('tab-missions').classList.add('active');
+
+    await loadRewardsHistory();
+}
+
+
+function backToMissions() {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    document.getElementById('tasks-page').classList.add('active');
+    document.getElementById('tasks-page-extra').classList.add('active');
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    document.getElementById('tab-missions').classList.add('active');
+}
+
+
+async function loadRewardsHistory() {
+    const container = document.getElementById('rewards-history-container');
+
+    container.innerText = currentLang === 'ar'
+        ? 'جارٍ تحميل المكافآت...'
+        : 'Loading rewards...';
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/rewards`, {
+            method: 'GET',
+            headers: {
+                'X-Telegram-Init-Data': tg.initData
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error('Could not load rewards');
+        }
+
+        container.innerHTML = '';
+
+        if (data.rewards.length === 0) {
+            container.innerText = currentLang === 'ar'
+                ? 'لا توجد مكافآت مسجلة حتى الآن.'
+                : 'No rewards recorded yet.';
+            return;
+        }
+
+        data.rewards.forEach(reward => {
+            const item = document.createElement('div');
+            item.className = 'reward-history-item';
+
+            const source = document.createElement('div');
+            source.className = 'reward-history-source';
+            source.textContent = reward.source;
+
+            const points = document.createElement('div');
+            points.className = 'reward-history-points';
+            points.textContent = `+${reward.points} Pts`;
+
+            const date = document.createElement('div');
+            date.className = 'reward-history-date';
+            date.textContent = reward.date;
+
+            item.appendChild(source);
+            item.appendChild(points);
+            item.appendChild(date);
+
+            container.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error('Rewards history error:', error);
+
+        container.innerText = currentLang === 'ar'
+            ? 'تعذر تحميل سجل المكافآت. حاولي مرة أخرى.'
+            : 'Could not load rewards. Please try again.';
+    }
+}
         
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
@@ -803,7 +924,11 @@ function toggleLanguage() {
     setText('no-crew-text', 'Your crew is currently empty.', 'فريقك فارغ حالياً');
 
     setText('mission-board-title', '🛸 Quantum Mission Board', '🛸 لوحة المهام الكمية');
+    setText('rewards-history-btn', '🎁 Rewards History', '🎁 سجل المكافآت');
 
+    setText('rewards-title', '🎁 Rewards History', '🎁 سجل المكافآت');
+
+    setText('rewards-back-btn', '← Back to Missions', '← العودة إلى المهام');
     document.querySelectorAll('.next-ad-title').forEach(el => {
         el.innerText = ar ? '🔵 الإعلان التالي' : '🔵 NEXT AD';
     });
