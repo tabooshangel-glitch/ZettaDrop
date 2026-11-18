@@ -136,6 +136,18 @@ def init_db():
             created_at TEXT NOT NULL
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS adsgram_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            block_id TEXT NOT NULL,
+            event_key TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'PENDING',
+            points INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            rewarded_at TEXT
+        )
+    ''')    
     conn.commit()
     conn.close()
 
@@ -411,6 +423,84 @@ def get_rewards_history():
 
     finally:
         conn.close()    
+@app.route('/api/adsgram/start', methods=['POST'])
+def start_adsgram_session():
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_user = validate_telegram_data(init_data)
+
+    if not telegram_user:
+        return jsonify({"error": "Invalid Telegram authentication"}), 401
+
+    uid = int(telegram_user["id"])
+    now = int(time.time())
+
+    conn = sqlite3.connect("zettadrop.db", timeout=10)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("BEGIN IMMEDIATE")
+
+        cursor.execute(
+            "SELECT user_id FROM users WHERE user_id = ?",
+            (uid,)
+        )
+
+        if not cursor.fetchone():
+            return jsonify({"error": "User not found"}), 404
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM adsgram_events
+            WHERE user_id = ?
+            AND created_at >= datetime('now', '-12 hours')
+        """, (uid,))
+
+        if cursor.fetchone()[0] >= 5:
+            return jsonify({"error": "AdsGram limit reached"}), 429
+
+        cursor.execute("""
+            SELECT created_at
+            FROM adsgram_events
+            WHERE user_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+        """, (uid,))
+
+        last_event = cursor.fetchone()
+
+        if last_event:
+            cursor.execute("""
+                SELECT (strftime('%s', 'now') - strftime('%s', ?))
+            """, (last_event[0],))
+            elapsed = cursor.fetchone()[0]
+
+            if elapsed < 15:
+                return jsonify({
+                    "error": "Please wait before watching another ad",
+                    "remaining_seconds": 15 - elapsed
+                }), 429
+
+        event_key = secrets.token_urlsafe(24)
+
+        cursor.execute("""
+            INSERT INTO adsgram_events
+            (user_id, block_id, event_key, status, created_at)
+            VALUES (?, '60195', ?, 'PENDING', datetime('now'))
+        """, (uid, event_key))
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "session_id": event_key
+        })
+
+    except Exception:
+        conn.rollback()
+        return jsonify({"error": "Could not start AdsGram session"}), 500
+
+    finally:
+        conn.close()
 
 @app.route('/api/reward', methods=['POST'])
 def add_reward():
@@ -424,6 +514,14 @@ def add_reward():
 
     uid = str(telegram_user["id"])
     platform = data.get("platform")
+
+    if platform == "AdsGram":
+        return jsonify({
+            "error": "AdsGram rewards must be processed through the dedicated AdsGram system"
+        }), 403
+        return jsonify({
+            "error": "AdsGram rewards must be processed through the dedicated AdsGram system"
+        }), 403
 
     rewards_map = {
         "AdsGram": [100, 75, 50, 40, 30],

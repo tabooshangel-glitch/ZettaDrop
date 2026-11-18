@@ -6,6 +6,7 @@
     <title>ZettaDrop Quantum Station</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 </head>
 <body>
     <button id="lang-btn-text" class="lang-toggle-btn" onclick="toggleLanguage()">🌐 EN/AR</button>
@@ -75,9 +76,8 @@
                     <div id="adsgram-reward-box" class="ad-reward-info">
                         <div class="next-ad-title">🔵 NEXT AD</div>
                         <div id="adsgram-bonus-text" class="reward-points-text">💰 Reward: 100 Pts</div>
-                        <div id="adsgram-desc-text" class="reward-tip">✨ Watch gives 25 Pts, Click gives 75 Pts bonus!</div>
                     </div>
-                    <button id="adsgram-btn" class="action-btn-card adsgram-bg" onclick="processAdClick('AdsGram', 'video')">Watch Ad</button>
+                    <button id="adsgram-btn" class="action-btn-card adsgram-bg" onclick="startAdsGramAd()">Watch Ad</button>
                 </div>
 
                 <!-- 2. كبسولة شركة RichAdsGram (5 إعلانات كل 11 ساعة) -->
@@ -1027,6 +1027,65 @@ function toggleLanguage() {
                     alert('Referral link copied!');
                 });
         }
+        let adsgramController = null;
+
+async function startAdsGramAd() {
+    const btn = document.getElementById('adsgram-btn');
+
+    if (btn.disabled) return;
+
+    if (!window.Adsgram) {
+        alert('AdsGram SDK is not loaded. Please try again.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('disabled-btn');
+
+    try {
+        // Register the ad session with the server
+        const sessionResponse = await fetch(`${BACKEND_URL}/api/adsgram/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({})
+        });
+
+        const session = await sessionResponse.json();
+
+        if (!sessionResponse.ok || !session.success) {
+            alert(session.error || 'Could not start AdsGram session.');
+            return;
+        }
+
+        if (!adsgramController) {
+            adsgramController = window.Adsgram.init({
+                blockId: "60195",
+                debug: true,
+                debugConsole: true,
+                debugBannerType: "RewardedVideo"
+            });
+        }
+
+        const result = await adsgramController.show();
+
+        if (result && result.done && !result.error) {
+            alert('AdsGram test completed successfully! No points added.');
+        } else {
+            alert('Ad was not completed. No reward added.');
+        }
+
+    } catch (error) {
+        console.error('AdsGram error:', error);
+        alert('Ad could not be completed. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('disabled-btn');
+    }
+}
+
     </script>
 </body>
 </html>
