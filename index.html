@@ -1168,6 +1168,40 @@ async function startAdsGramAd() {
 
                 await fetchUserData();
 
+                // Start AdsGram cooldown automatically after reward
+                if (reward.cooldown_seconds > 0) {
+                    let remaining = reward.cooldown_seconds;
+                    const originalText = btn.innerText;
+
+                    adsgramCooldownActive = true;
+                    btn.disabled = true;
+                    btn.classList.add('disabled-btn');
+
+                    const updateCountdown = () => {
+                        btn.innerText = currentLang === 'en'
+                            ? `⏳ Wait ${remaining}s`
+                            : `⏳ انتظر ${remaining}ث`;
+                    };
+
+                    updateCountdown();
+
+                    const timer = setInterval(() => {
+                        remaining--;
+
+                        if (remaining > 0) {
+                            updateCountdown();
+                        } else {
+                            clearInterval(timer);
+
+                            adsgramCooldownActive = false;
+                            btn.disabled = false;
+                            btn.classList.remove('disabled-btn');
+                            btn.innerText = originalText;
+                        }
+                    }, 1000);
+                }
+
+
             } else {
                 alert(reward.error || 'Could not process your reward.');
             }

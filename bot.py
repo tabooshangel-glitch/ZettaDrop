@@ -486,10 +486,11 @@ def start_adsgram_session():
             return jsonify({"error": "AdsGram limit reached"}), 429
 
         cursor.execute("""
-            SELECT created_at
+            SELECT rewarded_at
             FROM adsgram_events
             WHERE user_id = ?
-            ORDER BY id DESC
+            AND status = 'REWARDED'
+            ORDER BY rewarded_at DESC
             LIMIT 1
         """, (uid,))
 
@@ -622,7 +623,8 @@ def complete_adsgram_session():
         return jsonify({
             "success": True,
             "points_added": points,
-            "completed_ads": completed_count + 1
+            "completed_ads": completed_count + 1,
+            "cooldown_seconds": 15
         })
 
     except Exception as e:
