@@ -1072,7 +1072,67 @@ async function startAdsGramAd() {
         const result = await adsgramController.show();
 
         if (result && result.done && !result.error) {
-            alert('AdsGram test completed successfully! No points added.');
+
+            const rewardResponse = await fetch(`${BACKEND_URL}/api/adsgram/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Telegram-Init-Data': tg.initData
+                },
+                body: JSON.stringify({
+                    session_id: session.session_id
+                })
+            });
+
+            const reward = await rewardResponse.json();
+
+            if (rewardResponse.ok && reward.success) {
+                const rewardNotice = document.createElement('div');
+
+const isArabic = currentLang === 'ar';
+
+rewardNotice.innerHTML = `
+    <div style="font-size:11px; letter-spacing:1px; color:#ffffff; opacity:0.8; margin-bottom:6px;">
+        ${isArabic ? 'تم استلام المكافأة' : 'REWARD RECEIVED'}
+    </div>
+
+    <div style="
+        font-size:23px;
+        font-weight:800;
+        color:#00F5D4;
+        text-shadow:0 0 8px rgba(0,245,212,0.7);
+    ">
+        +${reward.points_added} ${isArabic ? 'نقطة' : 'Points'}
+    </div>
+`;
+
+rewardNotice.style.cssText = `
+    position:fixed;
+    bottom:35px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:99999;
+    min-width:190px;
+    padding:13px 20px;
+    text-align:center;
+    direction:${isArabic ? 'rtl' : 'ltr'};
+    background:rgba(12,20,35,0.96);
+    border:1px solid rgba(0,245,212,0.65);
+    border-radius:14px;
+    box-shadow:0 0 18px rgba(0,245,212,0.18);
+    font-family:inherit;
+`;
+
+document.body.appendChild(rewardNotice);
+
+setTimeout(() => {
+    rewardNotice.remove();
+}, 3000);
+                await fetchUserData();
+            } else {
+                alert(reward.error || 'Could not process your reward.');
+            }
+
         } else {
             alert('Ad was not completed. No reward added.');
         }

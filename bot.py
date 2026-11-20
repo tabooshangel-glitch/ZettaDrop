@@ -345,6 +345,32 @@ def get_user_data():
                 "cooldown": True,
                 "remaining_seconds": rem_seconds
             }
+    cursor.execute("""
+        SELECT rewarded_at
+        FROM adsgram_events
+        WHERE user_id = ?
+        AND status = 'REWARDED'
+        AND rewarded_at >= datetime('now', '-12 hours')
+        ORDER BY rewarded_at ASC
+    """, (uid,))
+
+    adsgram_rows = cursor.fetchall()
+    adsgram_count = len(adsgram_rows)
+
+    adsgram_remaining = 0
+
+    if adsgram_count >= 5:
+        oldest_reward = datetime.datetime.strptime(
+            adsgram_rows[0][0], "%Y-%m-%d %H:%M:%S"
+        )
+        elapsed = (datetime.datetime.utcnow() - oldest_reward).total_seconds()
+        adsgram_remaining = max(0, int(43200 - elapsed))
+
+    ad_states["AdsGram"] = {
+        "index": min(adsgram_count, 5),
+        "cooldown": adsgram_count >= 5 and adsgram_remaining > 0,
+        "remaining_seconds": adsgram_remaining
+    }
 
     cursor.execute("""
         SELECT spun_at FROM spin_logs
@@ -452,7 +478,8 @@ def start_adsgram_session():
             SELECT COUNT(*)
             FROM adsgram_events
             WHERE user_id = ?
-            AND created_at >= datetime('now', '-12 hours')
+            AND status = 'REWARDED'
+            AND rewarded_at >= datetime('now', '-12 hours')
         """, (uid,))
 
         if cursor.fetchone()[0] >= 5:
@@ -498,6 +525,110 @@ def start_adsgram_session():
     except Exception:
         conn.rollback()
         return jsonify({"error": "Could not start AdsGram session"}), 500
+
+    finally:
+        conn.close()
+
+@app.route('/api/adsgram/complete', methods=['POST'])
+def complete_adsgram_session():
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_user = validate_telegram_data(init_data)
+
+    if not telegram_user:
+        return jsonify({"error": "Invalid Telegram authentication"}), 401
+
+    uid = int(telegram_user["id"])
+    data = request.get_json(silent=True) or {}
+    session_id = str(data.get("session_id", "")).strip()
+
+    if not session_id:
+        return jsonify({"error": "Missing session_id"}), 400
+
+    rewards = [100, 75, 50, 40, 30]
+    conn = sqlite3.connect("zettadrop.db", timeout=10)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("BEGIN IMMEDIATE")
+
+        cursor.execute("""
+            SELECT id, status
+            FROM adsgram_events
+            WHERE event_key = ? AND user_id = ?
+        """, (session_id, uid))
+
+        event = cursor.fetchone()
+
+        if not event:
+            conn.rollback()
+            return jsonify({"error": "Invalid AdsGram session"}), 404
+
+        event_id, status = event
+
+        if status == "REWARDED":
+            conn.rollback()
+            return jsonify({
+                "success": True,
+                "already_rewarded": True,
+                "points_added": 0
+            })
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM adsgram_events
+            WHERE user_id = ?
+            AND status = 'REWARDED'
+            AND rewarded_at >= datetime('now', '-12 hours')
+        """, (uid,))
+
+        completed_count = cursor.fetchone()[0]
+
+        if completed_count >= 5:
+            conn.rollback()
+            return jsonify({"error": "AdsGram limit reached"}), 429
+
+        points = rewards[completed_count]
+
+        cursor.execute("""
+            UPDATE users
+            SET points = points + ?
+            WHERE user_id = ?
+        """, (points, uid))
+
+        if cursor.rowcount != 1:
+            conn.rollback()
+            return jsonify({"error": "User not found"}), 404
+
+        cursor.execute("""
+            UPDATE adsgram_events
+            SET status = 'REWARDED',
+                points = ?,
+                rewarded_at = datetime('now')
+            WHERE id = ? AND status = 'PENDING'
+        """, (points, event_id))
+
+        if cursor.rowcount != 1:
+            conn.rollback()
+            return jsonify({"error": "Session already processed"}), 409
+
+        cursor.execute("""
+            INSERT INTO reward_history
+            (user_id, source, points, event_key, created_at)
+            VALUES (?, 'AdsGram', ?, ?, datetime('now'))
+        """, (uid, points, f"adsgram:{session_id}"))
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "points_added": points,
+            "completed_ads": completed_count + 1
+        })
+
+    except Exception as e:
+        conn.rollback()
+        print(f"AdsGram completion error: {e}")
+        return jsonify({"error": "AdsGram reward processing failed"}), 500
 
     finally:
         conn.close()
