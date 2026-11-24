@@ -1681,17 +1681,38 @@ function createCosmicSpaceship() {
     cosmicShip.add(astronautHelmet);
 
     // جسم رائد الفضاء
-    const astronautBody = new THREE.Mesh(
-        new THREE.CapsuleGeometry(0.16, 0.35, 4, 8),
-        new THREE.MeshStandardMaterial({
-            color: 0xe8eaff,
-            metalness: 0.55,
-            roughness: 0.3
-        })
+    const astronautBody = new THREE.Group();
+
+    const suitMaterial = new THREE.MeshStandardMaterial({
+        color: 0xe8eaff,
+        metalness: 0.65,
+        roughness: 0.22
+    });
+
+    const suitCenter = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.16, 0.35, 24),
+        suitMaterial
     );
 
+    const suitTop = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 24, 24),
+        suitMaterial
+    );
+
+    const suitBottom = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 24, 24),
+        suitMaterial
+    );
+
+    suitTop.position.y = 0.175;
+    suitBottom.position.y = -0.175;
+
+    astronautBody.add(suitCenter);
+    astronautBody.add(suitTop);
+    astronautBody.add(suitBottom);
+
     astronautBody.position.set(0, 0.12, 0.12);
-    cosmicShip.add(astronautBody);
+    cosmicShip.add(astronautBody);    
 
     // الأجنحة
     const wingGeometry = new THREE.BoxGeometry(
