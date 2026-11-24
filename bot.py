@@ -147,6 +147,18 @@ def init_db():
             created_at TEXT NOT NULL,
             rewarded_at TEXT
         )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS richads_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            ad_unit_id TEXT,
+            event_key TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'PENDING',
+            points INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            rewarded_at TEXT
+        )
     ''')    
     conn.commit()
     conn.close()
@@ -652,13 +664,13 @@ def add_reward():
         return jsonify({
             "error": "AdsGram rewards must be processed through the dedicated AdsGram system"
         }), 403
+    if platform == "RichAdsGram":
         return jsonify({
-            "error": "AdsGram rewards must be processed through the dedicated AdsGram system"
+            "error": "RichAds rewards must be processed through the dedicated RichAds system"
         }), 403
 
     rewards_map = {
         "AdsGram": [100, 75, 50, 40, 30],
-        "RichAdsGram": [40, 20, 10, 5, 5],
         "Monetag": [40, 20, 10, 5],
         "TonAds": [80, 50, 30, 20, 15],
         "AdMaven": [50],

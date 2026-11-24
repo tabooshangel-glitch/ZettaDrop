@@ -83,7 +83,7 @@
                 <!-- 2. كبسولة شركة RichAdsGram (5 إعلانات كل 11 ساعة) -->
                 <div class="ad-block-card border-richads">
                     <div class="ad-block-header">
-                        <span class="plat-name">RichAdsGram</span>
+                        <span class="plat-name">RichAds</span>
                         <span id="richads-count" class="plat-counter">0/5 Ads</span>
                     </div>
                     <div id="richads-reward-box" class="ad-reward-info">
@@ -91,7 +91,7 @@
                         <div id="richads-bonus-text" class="reward-points-text">💰 Reward: 40 Pts</div>
                         <div id="richads-desc-text" class="reward-tip">✨ Watch the ad and claim your reward instantly.</div>
                     </div>
-                    <button id="richads-btn" class="action-btn-card richads-bg" onclick="processAdClick('RichAdsGram', 'video')">Watch Ad</button>
+                    <button id="richads-btn" class="action-btn-card richads-bg" onclick="processAdClick('RichAds', 'video')">Watch Ad</button>
                 </div>
 
                 <!-- 3. كبسولة شركة Monetag Smart Link (4 إعلانات كل 3 ساعات مع العبارة المبسطة والتايمر) -->
@@ -248,13 +248,185 @@
                 <button id="spin-launch-btn" class="action-btn ref-btn" style="margin-top: 25px;" onclick="startCosmicSpin()">Spin Planet Wheel</button>
             </div>
         </div>
-        <!-- 👥 شريط التبويبات السفلي الأنيق والمحدث بـ 4 تبويبات كاملة متناسقة -->
+
+        <!-- 🎮 ARCADE: Cosmic Games Hub -->
+        <div id="arcade-page" class="page">
+            <div class="section-title" style="margin-top: 0;">
+                🎮 COSMIC ARCADE
+            </div>
+
+            <div class="space-card arcade-header">
+                <div class="arcade-orb">🌌</div>
+                <h2>ENTER THE GALAXY</h2>
+                <p>Choose your cosmic challenge and test your skills!</p>
+                <div class="arcade-stats">
+                    <div class="arcade-stat">
+                        <span>🎯</span>
+                        <strong>6</strong>
+                        <small>GAMES</small>
+                    </div>
+                    <div class="arcade-stat">
+                        <span>❤️</span>
+                        <strong>3</strong>
+                        <small>HEARTS</small>
+                    </div>
+                    <div class="arcade-stat">
+                        <span>⏱️</span>
+                        <strong>3</strong>
+                        <small>DAILY ROUNDS</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title arcade-section-title">
+                ✨ SELECT YOUR GAME
+            </div>
+
+            <div class="arcade-games-grid">
+
+                <div class="space-card arcade-game-card cosmic-tunnel-card"
+                     onclick="openArcadeGame('cosmic-tunnel')">
+                    <div class="arcade-game-icon">🚀</div>
+                    <div class="arcade-game-name">COSMIC TUNNEL</div>
+                    <div class="arcade-game-desc">Dodge asteroids. Collect energy.</div>
+                    <div class="arcade-game-status">▶ PLAY NOW</div>
+                </div>
+
+                <div class="space-card arcade-game-card">
+                    <div class="arcade-game-icon">☄️</div>
+                    <div class="arcade-game-name">ASTEROID RUSH</div>
+                    <div class="arcade-game-desc">Navigate the asteroid field.</div>
+                    <div class="arcade-game-status">COMING SOON</div>
+                </div>
+
+                <div class="space-card arcade-game-card">
+                    <div class="arcade-game-icon">🪐</div>
+                    <div class="arcade-game-name">PLANET DEFENDER</div>
+                    <div class="arcade-game-desc">Protect the cosmic planets.</div>
+                    <div class="arcade-game-status">COMING SOON</div>
+                </div>
+
+                <div class="space-card arcade-game-card">
+                    <div class="arcade-game-icon">💎</div>
+                    <div class="arcade-game-name">CRYSTAL QUEST</div>
+                    <div class="arcade-game-desc">Discover hidden space crystals.</div>
+                    <div class="arcade-game-status">COMING SOON</div>
+                </div>
+
+                <div class="space-card arcade-game-card">
+                    <div class="arcade-game-icon">🛸</div>
+                    <div class="arcade-game-name">GALAXY PILOT</div>
+                    <div class="arcade-game-desc">Master your spacecraft.</div>
+                    <div class="arcade-game-status">COMING SOON</div>
+                </div>
+
+                <div class="space-card arcade-game-card">
+                    <div class="arcade-game-icon">🌠</div>
+                    <div class="arcade-game-name">STAR HUNTER</div>
+                    <div class="arcade-game-desc">Chase the falling stars.</div>
+                    <div class="arcade-game-status">COMING SOON</div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <!-- 🚀 COSMIC TUNNEL GAME SCREEN -->
+        <div id="cosmic-tunnel-page" class="page">
+
+            <div class="cosmic-game-topbar">
+                <button class="cosmic-control-btn"
+                        onclick="toggleGameSound()"
+                        id="game-sound-btn">🔊</button>
+
+                <div class="cosmic-game-title">COSMIC TUNNEL</div>
+
+                <button class="cosmic-control-btn"
+                        onclick="pauseCosmicGame()"
+                        id="game-pause-btn">⏸️</button>
+            </div>
+
+            <div class="cosmic-game-hud">
+                <div class="cosmic-hud-box">
+                    <small>SCORE</small>
+                    <strong id="cosmic-score">0</strong>
+                </div>
+
+                <div class="cosmic-hud-box">
+                    <small>TIME</small>
+                    <strong id="cosmic-timer">60</strong>
+                </div>
+
+                <div class="cosmic-hud-box">
+                    <small>HEARTS</small>
+                    <strong id="cosmic-hearts">❤️❤️❤️</strong>
+                </div>
+            </div>
+
+            <div id="cosmic-game-container">
+                <canvas id="cosmic-game-canvas"></canvas>
+
+                <div id="cosmic-loading">
+                    <div>🚀</div>
+                    <p>PREPARING YOUR SPACECRAFT...</p>
+                </div>
+            </div>
+
+            <div class="cosmic-game-controls-hint">
+                SWIPE LEFT & RIGHT TO CONTROL YOUR SPACECRAFT
+            </div>
+
+            <!-- ⏸️ PAUSE WINDOW -->
+            <div id="cosmic-pause-overlay" class="cosmic-overlay"
+                 style="display:none;">
+                <div class="cosmic-popup">
+                    <div class="cosmic-popup-icon">⏸️</div>
+                    <h2>GAME PAUSED</h2>
+
+                    <button class="action-btn ref-btn"
+                            onclick="resumeCosmicGame()">▶ RESUME</button>
+
+                    <button class="action-btn"
+                            onclick="toggleGameSound()">🔊 SOUND</button>
+
+                    <button class="action-btn"
+                            onclick="exitCosmicGame()">↩ EXIT GAME</button>
+                </div>
+            </div>
+
+            <!-- 🏆 GAME RESULT WINDOW -->
+            <div id="cosmic-result-overlay" class="cosmic-overlay"
+                 style="display:none;">
+                <div class="cosmic-popup">
+                    <div class="cosmic-popup-icon">🏆</div>
+                    <h2 id="cosmic-result-title">ROUND COMPLETE!</h2>
+
+                    <p>Your Score</p>
+                    <strong id="cosmic-final-score">0</strong>
+
+                    <p id="cosmic-result-message">
+                        Great flying, Space Pilot!
+                    </p>
+
+                    <button class="action-btn ref-btn"
+                            onclick="restartCosmicGame()">↻ PLAY AGAIN</button>
+
+                    <button class="action-btn"
+                            onclick="exitCosmicGame()">🌌 BACK TO ARCADE</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 👥 شريط التبويبات السفلي -->
         <div class="nav-bar">
             <div id="tab-profile" class="nav-item active" onclick="switchTab('home-page', this)">🪐 Profile</div>
             <div id="tab-missions" class="nav-item" onclick="switchTab('tasks-page', this)">💎 Missions</div>
             <div id="tab-spin" class="nav-item" onclick="switchTab('spin-page', this)">🎰 Spin</div>
             <div id="tab-wallet" class="nav-item" onclick="switchTab('wallet-page', this)">💳 Wallet</div>
-                </div>
+            <div id="tab-arcade" class="nav-item" onclick="switchTab('arcade-page', this)">🎮 Arcade</div>
+        </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -1029,8 +1201,35 @@ function toggleLanguage() {
         }
         let adsgramController = null;
         let adsgramCooldownActive = false;
+        let richadsController = null;
+        let richadsCooldownActive = false;
 
-async function startAdsGramAd() {
+        const RICHADS_PUB_ID = "";
+        const RICHADS_APP_ID = "";
+
+        function initializeRichAds() {
+            if (!RICHADS_PUB_ID || !RICHADS_APP_ID) {
+                console.log("RichAds credentials are not configured yet.");
+                return false;
+            }
+
+            if (typeof window.TelegramAdsController !== "function") {
+                console.error("RichAds library not loaded.");
+                return false;
+            }
+
+            richadsController = new window.TelegramAdsController();
+
+            richadsController.initialize({
+                pubId: RICHADS_PUB_ID,
+                appId: RICHADS_APP_ID,
+                debug: true
+            });
+
+            return true;
+        }
+
+    async function startAdsGramAd() {
     const btn = document.getElementById('adsgram-btn');
 
     if (btn.disabled) return;
@@ -1222,6 +1421,1047 @@ async function startAdsGramAd() {
     }
 }
 
+// ==========================================
+// 🚀 COSMIC TUNNEL - 3D GAME ENGINE
+// PART 1: SCENE SETUP
+// ==========================================
+
+let cosmicScene = null;
+let cosmicCamera = null;
+let cosmicRenderer = null;
+let cosmicAnimationId = null;
+
+let cosmicShip = null;
+let cosmicRings = [];
+let cosmicAsteroids = [];
+let cosmicCrystals = [];
+let cosmicStars = [];
+
+let cosmicScore = 0;
+let cosmicHearts = 3;
+let cosmicTime = 60;
+
+let cosmicRunning = false;
+let cosmicPaused = false;
+let cosmicSoundEnabled = true;
+
+let cosmicLastTime = 0;
+let cosmicGameClock = null;
+
+let cosmicShipTargetX = 0;
+let cosmicInvulnerable = false;
+
+function createCosmicScene() {
+
+    const container = document.getElementById('cosmic-game-container');
+
+    if (!container || typeof THREE === 'undefined') {
+        console.error('Three.js or game container not found.');
+        return false;
+    }
+
+    const canvas = document.getElementById('cosmic-game-canvas');
+
+    cosmicScene = new THREE.Scene();
+    cosmicScene.background = new THREE.Color(0x080018);
+    cosmicScene.fog = new THREE.FogExp2(0x10002c, 0.018);
+
+    cosmicCamera = new THREE.PerspectiveCamera(
+        65,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        1000
+    );
+
+    cosmicCamera.position.set(0, 3.5, 9);
+    cosmicCamera.lookAt(0, 0, -8);
+
+    cosmicRenderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: false
+    });
+
+    cosmicRenderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
+    );
+
+    cosmicRenderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+
+    cosmicRenderer.shadowMap.enabled = true;
+
+    cosmicScene.add(
+        new THREE.AmbientLight(0x9b7cff, 1.5)
+    );
+
+    const mainLight = new THREE.PointLight(
+        0x8b5cff,
+        3,
+        100
+    );
+
+    mainLight.position.set(0, 8, 5);
+    cosmicScene.add(mainLight);
+
+    const blueLight = new THREE.PointLight(
+        0x00d9ff,
+        2,
+        80
+    );
+
+    blueLight.position.set(-8, 2, -15);
+    cosmicScene.add(blueLight);
+
+    const pinkLight = new THREE.PointLight(
+        0xff36c9,
+        2,
+        80
+    );
+
+    pinkLight.position.set(8, 2, -25);
+    cosmicScene.add(pinkLight);
+
+    createCosmicTunnel();
+    createCosmicStars();
+    createCosmicSpaceship();
+
+    window.addEventListener('resize', resizeCosmicGame);
+
+    return true;
+}
+
+// ==========================================
+// PART 2: COSMIC TUNNEL & STARFIELD
+// ==========================================
+
+function createCosmicTunnel() {
+
+    cosmicRings = [];
+
+    for (let i = 0; i < 18; i++) {
+
+        const geometry = new THREE.TorusGeometry(
+            7,
+            0.055,
+            8,
+            64
+        );
+
+        const material = new THREE.MeshStandardMaterial({
+            color: i % 2 === 0 ? 0x9b45ff : 0x00dfff,
+            emissive: i % 2 === 0 ? 0x6b16ff : 0x007bff,
+            emissiveIntensity: 2.5,
+            metalness: 0.7,
+            roughness: 0.25
+        });
+
+        const ring = new THREE.Mesh(geometry, material);
+
+        ring.position.z = -i * 9;
+        ring.rotation.z = i * 0.12;
+
+        cosmicScene.add(ring);
+        cosmicRings.push(ring);
+    }
+
+    const tunnelLights = [];
+
+    for (let i = 0; i < 12; i++) {
+
+        const light = new THREE.PointLight(
+            i % 2 === 0 ? 0x8c36ff : 0x00cfff,
+            1.8,
+            18
+        );
+
+        light.position.set(
+            Math.sin(i) * 5,
+            Math.cos(i) * 4,
+            -i * 13
+        );
+
+        cosmicScene.add(light);
+        tunnelLights.push(light);
+    }
+}
+
+
+function createCosmicStars() {
+
+    cosmicStars = [];
+
+    const starGeometry = new THREE.SphereGeometry(
+        0.045,
+        6,
+        6
+    );
+
+    const starMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff
+    });
+
+    for (let i = 0; i < 250; i++) {
+
+        const star = new THREE.Mesh(
+            starGeometry,
+            starMaterial
+        );
+
+        star.position.set(
+            (Math.random() - 0.5) * 45,
+            (Math.random() - 0.5) * 35,
+            -Math.random() * 180
+        );
+
+        cosmicScene.add(star);
+        cosmicStars.push(star);
+    }
+}
+
+// ==========================================
+// PART 3: 3D SPACESHIP
+// ==========================================
+
+function createCosmicSpaceship() {
+
+    cosmicShip = new THREE.Group();
+
+    // جسم المركبة
+    const bodyGeometry = new THREE.ConeGeometry(
+        0.65, 3.2, 8
+    );
+
+    const silverMaterial = new THREE.MeshStandardMaterial({
+        color: 0xdde8ff,
+        metalness: 0.9,
+        roughness: 0.22
+    });
+
+    const body = new THREE.Mesh(
+        bodyGeometry,
+        silverMaterial
+    );
+
+    body.rotation.x = -Math.PI / 2;
+    body.position.z = -0.25;
+    cosmicShip.add(body);
+
+    // قمرة القيادة
+    const cockpit = new THREE.Mesh(
+        new THREE.SphereGeometry(0.58, 24, 24),
+        new THREE.MeshPhysicalMaterial({
+            color: 0x65dfff,
+            metalness: 0.25,
+            roughness: 0.08,
+            transparent: true,
+            opacity: 0.55,
+            clearcoat: 1
+        })
+    );
+
+    cockpit.scale.set(0.8, 0.8, 1.25);
+    cockpit.position.set(0, 0.48, -0.25);
+    cosmicShip.add(cockpit);
+
+    // خوذة رائد الفضاء
+    const astronautHelmet = new THREE.Mesh(
+        new THREE.SphereGeometry(0.27, 20, 20),
+        new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            metalness: 0.8,
+            roughness: 0.15,
+            emissive: 0x283c77
+        })
+    );
+
+    astronautHelmet.position.set(0, 0.58, 0.05);
+    cosmicShip.add(astronautHelmet);
+
+    // جسم رائد الفضاء
+    const astronautBody = new THREE.Mesh(
+        new THREE.CapsuleGeometry(0.16, 0.35, 4, 8),
+        new THREE.MeshStandardMaterial({
+            color: 0xe8eaff,
+            metalness: 0.55,
+            roughness: 0.3
+        })
+    );
+
+    astronautBody.position.set(0, 0.12, 0.12);
+    cosmicShip.add(astronautBody);
+
+    // الأجنحة
+    const wingGeometry = new THREE.BoxGeometry(
+        1.65, 0.12, 0.85
+    );
+
+    const wingMaterial = new THREE.MeshStandardMaterial({
+        color: 0x9eafd4,
+        metalness: 0.85,
+        roughness: 0.25
+    });
+
+    const leftWing = new THREE.Mesh(
+        wingGeometry,
+        wingMaterial
+    );
+
+    leftWing.position.set(-0.9, -0.15, 0.45);
+    leftWing.rotation.z = -0.12;
+    cosmicShip.add(leftWing);
+
+    const rightWing = new THREE.Mesh(
+        wingGeometry,
+        wingMaterial
+    );
+
+    rightWing.position.set(0.9, -0.15, 0.45);
+    rightWing.rotation.z = 0.12;
+    cosmicShip.add(rightWing);
+
+    // المحركات المضيئة
+    for (let i = -1; i <= 1; i += 2) {
+
+        const engine = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.17, 0.22, 0.65, 16),
+            new THREE.MeshStandardMaterial({
+                color: 0x343b69,
+                metalness: 0.9,
+                roughness: 0.2,
+                emissive: 0x3214aa
+            })
+        );
+
+        engine.rotation.x = Math.PI / 2;
+        engine.position.set(i * 0.62, -0.12, 0.9);
+        cosmicShip.add(engine);
+
+        const engineGlow = new THREE.PointLight(
+            0x00cfff, 2, 5
+        );
+
+        engineGlow.position.set(i * 0.62, -0.12, 1.35);
+        cosmicShip.add(engineGlow);
+    }
+
+    cosmicShip.position.set(0, -1.5, 3);
+    cosmicScene.add(cosmicShip);
+}
+
+// ==========================================
+// PART 4: ASTEROIDS & ENERGY CRYSTALS
+// ==========================================
+
+function createCosmicAsteroid() {
+
+    const asteroid = new THREE.Group();
+
+    const geometry = new THREE.IcosahedronGeometry(
+        0.65 + Math.random() * 0.45,
+        1
+    );
+
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x77718e,
+        metalness: 0.45,
+        roughness: 0.85,
+        flatShading: true
+    });
+
+    const rock = new THREE.Mesh(geometry, material);
+
+    asteroid.add(rock);
+
+    const glow = new THREE.PointLight(
+        0x9b45ff,
+        0.8,
+        4
+    );
+
+    asteroid.add(glow);
+
+    asteroid.position.set(
+        (Math.random() - 0.5) * 9,
+        (Math.random() - 0.5) * 5,
+        -100
+    );
+
+    asteroid.userData.type = 'asteroid';
+
+    cosmicScene.add(asteroid);
+    cosmicAsteroids.push(asteroid);
+}
+
+
+function createCosmicCrystal() {
+
+    const crystal = new THREE.Group();
+
+    const geometry = new THREE.OctahedronGeometry(
+        0.48,
+        0
+    );
+
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x00efff,
+        emissive: 0x0088ff,
+        emissiveIntensity: 2.5,
+        metalness: 0.65,
+        roughness: 0.15
+    });
+
+    const gem = new THREE.Mesh(geometry, material);
+
+    crystal.add(gem);
+
+    const glow = new THREE.PointLight(
+        0x00dfff,
+        1.5,
+        5
+    );
+
+    crystal.add(glow);
+
+    crystal.position.set(
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 4,
+        -100
+    );
+
+    crystal.userData.type = 'crystal';
+
+    cosmicScene.add(crystal);
+    cosmicCrystals.push(crystal);
+}
+
+// ==========================================
+// PART 5: SHIP CONTROLS & SOUND
+// ==========================================
+
+let cosmicAudioContext = null;
+
+function resizeCosmicGame() {
+
+    if (!cosmicRenderer || !cosmicCamera) return;
+
+    const container = document.getElementById(
+        'cosmic-game-container'
+    );
+
+    if (!container) return;
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    cosmicCamera.aspect = width / height;
+    cosmicCamera.updateProjectionMatrix();
+
+    cosmicRenderer.setSize(width, height);
+}
+
+
+function initializeCosmicControls() {
+
+    const canvas = document.getElementById(
+        'cosmic-game-canvas'
+    );
+
+    if (!canvas) return;
+
+    canvas.addEventListener('pointerdown', function(event) {
+        if (!cosmicRunning || cosmicPaused) return;
+
+        canvas.setPointerCapture(event.pointerId);
+        updateCosmicShipPosition(event);
+    });
+
+    canvas.addEventListener('pointermove', function(event) {
+        if (!cosmicRunning || cosmicPaused) return;
+        if (event.buttons === 0) return;
+
+        updateCosmicShipPosition(event);
+    });
+}
+
+
+function updateCosmicShipPosition(event) {
+
+    const canvas = document.getElementById(
+        'cosmic-game-canvas'
+    );
+
+    const rect = canvas.getBoundingClientRect();
+
+    const normalizedX =
+        (event.clientX - rect.left) / rect.width;
+
+    cosmicShipTargetX = (normalizedX - 0.5) * 10;
+
+    cosmicShipTargetX = Math.max(
+        -4.5,
+        Math.min(4.5, cosmicShipTargetX)
+    );
+}
+
+
+function playCosmicTone(frequency, duration, type = 'sine') {
+
+    if (!cosmicSoundEnabled) return;
+
+    try {
+
+        if (!cosmicAudioContext) {
+            cosmicAudioContext = new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+        }
+
+        if (cosmicAudioContext.state === 'suspended') {
+            cosmicAudioContext.resume();
+        }
+
+        const oscillator =
+            cosmicAudioContext.createOscillator();
+
+        const gain =
+            cosmicAudioContext.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+
+        gain.gain.setValueAtTime(
+            0.12,
+            cosmicAudioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            cosmicAudioContext.currentTime + duration
+        );
+
+        oscillator.connect(gain);
+        gain.connect(cosmicAudioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(
+            cosmicAudioContext.currentTime + duration
+        );
+
+    } catch (error) {
+        console.warn('Cosmic audio unavailable:', error);
+    }
+}
+
+
+function toggleGameSound() {
+
+    cosmicSoundEnabled = !cosmicSoundEnabled;
+
+    const button = document.getElementById(
+        'game-sound-btn'
+    );
+
+    if (button) {
+        button.textContent = cosmicSoundEnabled
+            ? '🔊'
+            : '🔇';
+    }
+
+    if (cosmicSoundEnabled) {
+        playCosmicTone(600, 0.15);
+    }
+}
+
+// ==========================================
+// PART 6: OBJECT SPAWNING
+// ==========================================
+
+let cosmicSpawnTimer = 0;
+let cosmicCrystalTimer = 0;
+
+function spawnCosmicObjects(delta) {
+
+    cosmicSpawnTimer += delta;
+    cosmicCrystalTimer += delta;
+
+    if (cosmicSpawnTimer >= 1.8) {
+
+        createCosmicAsteroid();
+        cosmicSpawnTimer = 0;
+    }
+
+    if (cosmicCrystalTimer >= 3.5) {
+
+        createCosmicCrystal();
+        cosmicCrystalTimer = 0;
+    }
+}
+
+// ==========================================
+// PART 7: GAME LOOP & COLLISION SYSTEM
+// ==========================================
+
+let cosmicGameSpeed = 18;
+let cosmicInvulnerableUntil = 0;
+
+function updateCosmicGame(delta) {
+
+    if (!cosmicRunning || cosmicPaused) return;
+
+    // حركة المركبة بسلاسة
+    if (cosmicShip) {
+
+        cosmicShip.position.x +=
+            (cosmicShipTargetX - cosmicShip.position.x) *
+            Math.min(1, delta * 7);
+
+        cosmicShip.rotation.z =
+            (cosmicShip.position.x - cosmicShipTargetX) * 0.08;
+    }
+
+    // زيادة سرعة اللعبة تدريجياً
+    cosmicGameSpeed = Math.min(
+        34,
+        cosmicGameSpeed + delta * 0.12
+    );
+
+    // تحريك حلقات النفق
+    cosmicRings.forEach(ring => {
+
+        ring.position.z += cosmicGameSpeed * delta;
+
+        if (ring.position.z > 8) {
+            ring.position.z -= 162;
+        }
+    });
+
+    // تحريك النجوم
+    cosmicStars.forEach(star => {
+
+        star.position.z += cosmicGameSpeed * delta * 1.5;
+
+        if (star.position.z > 8) {
+            star.position.z = -180;
+            star.position.x = (Math.random() - 0.5) * 45;
+            star.position.y = (Math.random() - 0.5) * 35;
+        }
+    });
+
+    // إنشاء العوائق والبلورات
+    spawnCosmicObjects(delta);
+
+    // تحريك الكويكبات
+    for (let i = cosmicAsteroids.length - 1; i >= 0; i--) {
+
+        const asteroid = cosmicAsteroids[i];
+
+        asteroid.position.z += cosmicGameSpeed * delta;
+        asteroid.rotation.x += delta;
+        asteroid.rotation.y += delta * 0.8;
+
+        if (checkCosmicCollision(asteroid, 1.15)) {
+
+            cosmicScene.remove(asteroid);
+            cosmicAsteroids.splice(i, 1);
+
+            loseCosmicHeart();
+            continue;
+        }
+
+        if (asteroid.position.z > 10) {
+
+            cosmicScene.remove(asteroid);
+            cosmicAsteroids.splice(i, 1);
+        }
+    }
+
+    // تحريك البلورات وجمعها
+    for (let i = cosmicCrystals.length - 1; i >= 0; i--) {
+
+        const crystal = cosmicCrystals[i];
+
+        crystal.position.z += cosmicGameSpeed * delta;
+        crystal.rotation.y += delta * 2;
+        crystal.rotation.x += delta;
+
+        if (checkCosmicCollision(crystal, 0.9)) {
+
+            cosmicScore += 10;
+            updateCosmicHUD();
+
+            playCosmicTone(880, 0.15, 'sine');
+
+            cosmicScene.remove(crystal);
+            cosmicCrystals.splice(i, 1);
+            continue;
+        }
+
+        if (crystal.position.z > 10) {
+
+            cosmicScene.remove(crystal);
+            cosmicCrystals.splice(i, 1);
+        }
+    }
+
+    // تحريك الكاميرا بشكل خفيف
+    cosmicCamera.position.x +=
+        (cosmicShip.position.x * 0.18 -
+        cosmicCamera.position.x) * delta * 2;
+
+    // تحديث عرض اللعبة
+    cosmicRenderer.render(cosmicScene, cosmicCamera);
+}
+
+
+function checkCosmicCollision(object, distance) {
+
+    if (!cosmicShip || !object) return false;
+
+    const dx = Math.abs(
+        object.position.x - cosmicShip.position.x
+    );
+
+    const dy = Math.abs(
+        object.position.y - cosmicShip.position.y
+    );
+
+    const dz = Math.abs(
+        object.position.z - cosmicShip.position.z
+    );
+
+    return (
+        dx < distance &&
+        dy < distance &&
+        dz < distance
+    );
+}
+
+
+function loseCosmicHeart() {
+
+    if (Date.now() < cosmicInvulnerableUntil) return;
+
+    cosmicHearts--;
+
+    cosmicInvulnerableUntil = Date.now() + 1300;
+
+    updateCosmicHUD();
+
+    playCosmicTone(130, 0.35, 'sawtooth');
+
+    if (cosmicHearts <= 0) {
+        finishCosmicGame();
+    }
+}
+
+
+function updateCosmicHUD() {
+
+    const scoreElement =
+        document.getElementById('cosmic-score');
+
+    const heartsElement =
+        document.getElementById('cosmic-hearts');
+
+    const timerElement =
+        document.getElementById('cosmic-timer');
+
+    if (scoreElement) {
+        scoreElement.textContent = cosmicScore;
+    }
+
+    if (heartsElement) {
+        heartsElement.textContent =
+            '❤️'.repeat(Math.max(0, cosmicHearts));
+    }
+
+    if (timerElement) {
+        timerElement.textContent = Math.max(
+            0,
+            Math.ceil(cosmicTime)
+        );
+    }
+}
+
+
+function finishCosmicGame() {
+
+    cosmicRunning = false;
+
+    const overlay = document.getElementById(
+        'cosmic-result-overlay'
+    );
+
+    const finalScore = document.getElementById(
+        'cosmic-final-score'
+    );
+
+    const resultTitle = document.getElementById(
+        'cosmic-result-title'
+    );
+
+    if (finalScore) {
+        finalScore.textContent = cosmicScore;
+    }
+
+    if (resultTitle) {
+        resultTitle.textContent =
+            cosmicHearts > 0 ? 'ROUND COMPLETE!' : 'GAME OVER!';
+    }
+
+    const message = document.getElementById(
+        'cosmic-result-message'
+    );
+
+    if (message) {
+        message.textContent =
+            'You collected ' + cosmicScore +
+            ' in-game points!';
+    }
+
+    if (overlay) {
+        overlay.style.display = 'flex';
+    }
+}
+
+
+// حلقة تشغيل الرسوم ثلاثية الأبعاد
+function cosmicGameLoop(timestamp) {
+
+    if (!cosmicRunning || cosmicPaused) return;
+
+    if (!cosmicLastTime) {
+        cosmicLastTime = timestamp;
+    }
+
+    const delta = Math.min(
+        (timestamp - cosmicLastTime) / 1000,
+        0.05
+    );
+
+    cosmicLastTime = timestamp;
+
+    cosmicTime -= delta;
+
+    if (cosmicTime <= 0) {
+
+        cosmicTime = 0;
+        updateCosmicHUD();
+        finishCosmicGame();
+        return;
+    }
+
+    updateCosmicHUD();
+    updateCosmicGame(delta);
+
+    cosmicAnimationId = requestAnimationFrame(
+        cosmicGameLoop
+    );
+}
+
+// ==========================================
+// PART 8: GAME START, PAUSE & RESTART
+// ==========================================
+
+let cosmicGameInitialized = false;
+let cosmicControlsInitialized = false;
+
+
+// فتح شاشة اللعبة
+function openArcadeGame(gameId) {
+
+    if (gameId !== 'cosmic-tunnel') return;
+
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    document.getElementById('cosmic-tunnel-page')
+        .classList.add('active');
+
+    const arcadeTab = document.getElementById('tab-arcade');
+
+    if (arcadeTab) {
+        arcadeTab.classList.add('active');
+    }
+
+    startCosmicRound();
+}
+
+
+// بدء جولة جديدة
+function startCosmicRound() {
+
+    if (!cosmicGameInitialized) {
+
+        const success = createCosmicScene();
+
+        if (!success) {
+            alert('Game engine could not load. Please refresh the app.');
+            return;
+        }
+
+        cosmicGameInitialized = true;
+    }
+
+    if (!cosmicControlsInitialized) {
+        initializeCosmicControls();
+        cosmicControlsInitialized = true;
+    }
+
+    // إيقاف أي حركة سابقة
+    if (cosmicAnimationId) {
+        cancelAnimationFrame(cosmicAnimationId);
+    }
+
+    // تنظيف العوائق والبلورات القديمة
+    cosmicAsteroids.forEach(object => {
+        cosmicScene.remove(object);
+    });
+
+    cosmicCrystals.forEach(object => {
+        cosmicScene.remove(object);
+    });
+
+    cosmicAsteroids = [];
+    cosmicCrystals = [];
+
+    // إعادة ضبط حلقات النفق
+    cosmicRings.forEach((ring, index) => {
+        ring.position.z = -index * 9;
+    });
+
+    // إعادة ضبط النجوم
+    cosmicStars.forEach(star => {
+        star.position.z = -Math.random() * 180;
+    });
+
+    // إعادة ضبط بيانات الجولة
+    cosmicScore = 0;
+    cosmicHearts = 3;
+    cosmicTime = 60;
+    cosmicGameSpeed = 18;
+
+    cosmicShipTargetX = 0;
+    cosmicInvulnerableUntil = 0;
+
+    cosmicSpawnTimer = 0;
+    cosmicCrystalTimer = 0;
+    cosmicLastTime = 0;
+
+    cosmicPaused = false;
+    cosmicRunning = true;
+
+    if (cosmicShip) {
+        cosmicShip.position.set(0, -1.5, 3);
+        cosmicShip.rotation.set(0, 0, 0);
+    }
+
+    cosmicCamera.position.set(0, 3.5, 9);
+    cosmicCamera.lookAt(0, 0, -8);
+
+    updateCosmicHUD();
+
+    // إخفاء النوافذ
+    document.getElementById('cosmic-pause-overlay')
+        .style.display = 'none';
+
+    document.getElementById('cosmic-result-overlay')
+        .style.display = 'none';
+
+    document.getElementById('cosmic-loading')
+        .style.display = 'none';
+
+    cosmicRenderer.render(cosmicScene, cosmicCamera);
+
+    cosmicAnimationId = requestAnimationFrame(
+        cosmicGameLoop
+    );
+}
+
+
+// زر الإيقاف المؤقت
+function pauseCosmicGame() {
+
+    if (!cosmicRunning || cosmicPaused) return;
+
+    cosmicPaused = true;
+
+    if (cosmicAnimationId) {
+        cancelAnimationFrame(cosmicAnimationId);
+    }
+
+    document.getElementById('cosmic-pause-overlay')
+        .style.display = 'flex';
+}
+
+
+// استكمال اللعب
+function resumeCosmicGame() {
+
+    if (!cosmicRunning || !cosmicPaused) return;
+
+    cosmicPaused = false;
+    cosmicLastTime = 0;
+
+    document.getElementById('cosmic-pause-overlay')
+        .style.display = 'none';
+
+    cosmicAnimationId = requestAnimationFrame(
+        cosmicGameLoop
+    );
+}
+
+
+// إعادة اللعب
+function restartCosmicGame() {
+
+    startCosmicRound();
+}
+
+
+// الخروج إلى صفحة الألعاب
+function exitCosmicGame() {
+
+    cosmicRunning = false;
+    cosmicPaused = false;
+
+    if (cosmicAnimationId) {
+        cancelAnimationFrame(cosmicAnimationId);
+    }
+
+    document.getElementById('cosmic-pause-overlay')
+        .style.display = 'none';
+
+    document.getElementById('cosmic-result-overlay')
+        .style.display = 'none';
+
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    document.getElementById('arcade-page')
+        .classList.add('active');
+
+    document.getElementById('tab-arcade')
+        .classList.add('active');
+}
+
     </script>
+
+    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+
 </body>
 </html>

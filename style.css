@@ -239,3 +239,343 @@ h2 {
 #rewards-back-btn {
     margin-top: 15px;
 }
+
+/* =========================================
+   🎮 COSMIC ARCADE - MAIN DESIGN
+========================================= */
+
+.arcade-header {
+    text-align: center;
+    padding: 25px 15px;
+    margin-bottom: 22px;
+    background: linear-gradient(145deg, #17102f, #211044, #101b38);
+    border: 1px solid rgba(164, 92, 255, 0.45);
+    box-shadow: 0 0 22px rgba(137, 67, 255, 0.18);
+}
+
+.arcade-orb {
+    font-size: 55px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 15px #a855f7);
+}
+
+.arcade-header h2 {
+    color: #ffffff;
+    font-size: 21px;
+    letter-spacing: 2px;
+    margin: 8px 0;
+    text-shadow: 0 0 12px #a855f7;
+}
+
+.arcade-header p {
+    color: #b9b0d6;
+    font-size: 12px;
+    margin: 8px 0 20px;
+}
+
+.arcade-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.arcade-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+
+.arcade-stat span {
+    font-size: 20px;
+}
+
+.arcade-stat strong {
+    color: #55eaff;
+    font-size: 20px;
+    text-shadow: 0 0 10px rgba(85, 234, 255, 0.6);
+}
+
+.arcade-stat small {
+    color: #a99fc4;
+    font-size: 9px;
+    letter-spacing: 1px;
+}
+
+.arcade-section-title {
+    margin: 20px 0 14px;
+    text-align: center;
+}
+
+.arcade-games-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+    padding-bottom: 25px;
+}
+
+.arcade-game-card {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 18px 9px;
+    margin: 0;
+    min-width: 0;
+    background: linear-gradient(145deg, #1b1235, #101b35);
+    border: 1px solid rgba(135, 105, 255, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.arcade-game-card:active {
+    transform: scale(0.96);
+    box-shadow: 0 0 18px rgba(91, 224, 255, 0.35);
+}
+
+.arcade-game-icon {
+    font-size: 39px;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 9px rgba(151, 92, 255, 0.65));
+}
+
+.arcade-game-name {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.arcade-game-desc {
+    color: #aaa2c4;
+    font-size: 10px;
+    line-height: 1.5;
+    min-height: 30px;
+    margin-bottom: 13px;
+}
+
+.arcade-game-status {
+    display: inline-block;
+    padding: 6px 9px;
+    border-radius: 20px;
+    color: #64edff;
+    background: rgba(48, 194, 255, 0.10);
+    border: 1px solid rgba(48, 194, 255, 0.35);
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+}
+
+.cosmic-tunnel-card {
+    border-color: rgba(0, 238, 255, 0.65);
+    box-shadow: 0 0 18px rgba(0, 210, 255, 0.13);
+}
+
+.cosmic-tunnel-card .arcade-game-status {
+    color: #ffffff;
+    background: linear-gradient(90deg, #792cff, #00bde9);
+    border: none;
+    box-shadow: 0 0 12px rgba(0, 200, 255, 0.35);
+}
+
+@media (max-width: 360px) {
+    .arcade-games-grid {
+        gap: 9px;
+    }
+
+    .arcade-game-card {
+        padding: 15px 7px;
+    }
+
+    .arcade-game-name {
+        font-size: 10px;
+    }
+}
+
+/* =========================================
+   🚀 COSMIC TUNNEL - GAME SCREEN
+========================================= */
+
+.cosmic-game-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 5px 0 15px;
+}
+
+.cosmic-game-title {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 12px #a855f7;
+}
+
+.cosmic-control-btn {
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    border: 1px solid rgba(0, 225, 255, 0.45);
+    background: linear-gradient(145deg, #241344, #101b38);
+    color: white;
+    font-size: 19px;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 225, 255, 0.15);
+}
+
+.cosmic-game-hud {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.cosmic-hud-box {
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #20113d, #101a35);
+    border: 1px solid rgba(151, 104, 255, 0.35);
+}
+
+.cosmic-hud-box small {
+    display: block;
+    color: #aaa2c4;
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.cosmic-hud-box strong {
+    color: #62eaff;
+    font-size: 17px;
+    text-shadow: 0 0 9px rgba(98, 234, 255, 0.5);
+}
+
+#cosmic-hearts {
+    font-size: 14px !important;
+    letter-spacing: 1px;
+}
+
+#cosmic-game-container {
+    position: relative;
+    width: 100%;
+    height: 420px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: radial-gradient(ellipse at center, #24104a 0%, #09051b 65%, #03020b 100%);
+    border: 1px solid rgba(112, 100, 255, 0.55);
+    box-shadow:
+        0 0 20px rgba(112, 70, 255, 0.25),
+        inset 0 0 25px rgba(0, 200, 255, 0.10);
+}
+
+#cosmic-game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+#cosmic-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(5, 3, 18, 0.92);
+    color: #65eaff;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+#cosmic-loading div {
+    font-size: 55px;
+    filter: drop-shadow(0 0 15px #a855f7);
+}
+
+.cosmic-game-controls-hint {
+    color: #aaa2c4;
+    font-size: 10px;
+    text-align: center;
+    letter-spacing: 0.7px;
+    margin: 13px 0 20px;
+}
+
+.cosmic-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(3, 2, 15, 0.88);
+    backdrop-filter: blur(10px);
+}
+
+.cosmic-popup {
+    width: 100%;
+    max-width: 320px;
+    padding: 25px 18px;
+    border-radius: 20px;
+    text-align: center;
+    background: linear-gradient(145deg, #251044, #101a35);
+    border: 1px solid rgba(135, 105, 255, 0.65);
+    box-shadow: 0 0 30px rgba(126, 75, 255, 0.3);
+}
+
+.cosmic-popup-icon {
+    font-size: 45px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 12px #a855f7);
+}
+
+.cosmic-popup h2 {
+    margin-bottom: 18px;
+    font-size: 19px;
+}
+
+.cosmic-popup p {
+    color: #b9b0d6;
+    font-size: 12px;
+    margin: 10px 0;
+}
+
+.cosmic-popup #cosmic-final-score {
+    display: block;
+    color: #61eaff;
+    font-size: 36px;
+    text-shadow: 0 0 15px #00dfff;
+    margin: 8px 0;
+}
+
+.cosmic-popup .action-btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#cosmic-game-container,
+#cosmic-pause-overlay,
+#cosmic-result-overlay {
+    isolation: isolate;
+}
+
+@media (max-width: 380px) {
+    #cosmic-game-container {
+        height: 360px;
+    }
+
+    .cosmic-game-title {
+        font-size: 12px;
+    }
+}
+
