@@ -160,6 +160,18 @@ def init_db():
             rewarded_at TEXT
         )
     ''')    
+
+    # 🎮 نظام محاولات الألعاب المستقلة
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS arcade_attempts (
+            user_id INTEGER NOT NULL,
+            game_id TEXT NOT NULL,
+            attempts_left INTEGER NOT NULL DEFAULT 3,
+            reset_at INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (user_id, game_id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -423,7 +435,148 @@ def get_user_data():
         "ad_states": ad_states,
         "ref_link": ref_link
     })
-    
+
+@app.route('/api/arcade/attempts', methods=['GET'])
+def get_arcade_attempts():
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_user = validate_telegram_data(init_data)
+
+    if not telegram_user:
+        return jsonify({"error": "Invalid Telegram authentication"}), 401
+
+    uid = int(telegram_user["id"])
+    now = int(time.time())
+
+    games = [
+        "cosmic-tunnel",
+        "asteroid-rush",
+        "planet-defender",
+        "crystal-quest",
+        "galaxy-pilot",
+        "star-hunter"
+    ]
+
+    conn = sqlite3.connect("zettadrop.db")
+    cursor = conn.cursor()
+
+    attempts_data = {}
+
+    for game_id in games:
+        cursor.execute("""
+            INSERT OR IGNORE INTO arcade_attempts
+            (user_id, game_id, attempts_left, reset_at)
+            VALUES (?, ?, 3, 0)
+        """, (uid, game_id))
+
+        cursor.execute("""
+            SELECT attempts_left, reset_at
+            FROM arcade_attempts
+            WHERE user_id = ? AND game_id = ?
+        """, (uid, game_id))
+
+        attempts_left, reset_at = cursor.fetchone()
+
+        if attempts_left <= 0 and reset_at <= now:
+            attempts_left = 3
+            reset_at = 0
+
+            cursor.execute("""
+                UPDATE arcade_attempts
+                SET attempts_left = 3, reset_at = 0
+                WHERE user_id = ? AND game_id = ?
+            """, (uid, game_id))
+
+        attempts_data[game_id] = {
+            "attempts_left": attempts_left,
+            "reset_at": reset_at,
+            "remaining_seconds": max(0, reset_at - now)
+        }
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "games": attempts_data
+    })
+
+@app.route('/api/arcade/consume', methods=['POST'])
+def consume_arcade_attempt():
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_user = validate_telegram_data(init_data)
+
+    if not telegram_user:
+        return jsonify({"error": "Invalid Telegram authentication"}), 401
+
+    data = request.get_json(silent=True) or {}
+    game_id = data.get("game_id")
+
+    allowed_games = [
+        "cosmic-tunnel",
+        "asteroid-rush",
+        "planet-defender",
+        "crystal-quest",
+        "galaxy-pilot",
+        "star-hunter"
+    ]
+
+    if game_id not in allowed_games:
+        return jsonify({"error": "Invalid game"}), 400
+
+    uid = int(telegram_user["id"])
+    now = int(time.time())
+
+    conn = sqlite3.connect("zettadrop.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO arcade_attempts
+        (user_id, game_id, attempts_left, reset_at)
+        VALUES (?, ?, 3, 0)
+    """, (uid, game_id))
+
+    cursor.execute("""
+        SELECT attempts_left, reset_at
+        FROM arcade_attempts
+        WHERE user_id = ? AND game_id = ?
+    """, (uid, game_id))
+
+    attempts_left, reset_at = cursor.fetchone()
+
+    if attempts_left <= 0 and reset_at > now:
+        conn.close()
+        return jsonify({
+            "success": False,
+            "attempts_left": 0,
+            "remaining_seconds": reset_at - now
+        }), 403
+
+    if attempts_left <= 0 and reset_at <= now:
+        attempts_left = 3
+
+    attempts_left -= 1
+
+    if attempts_left == 0:
+        reset_at = now + 86400
+    else:
+        reset_at = 0
+
+    cursor.execute("""
+        UPDATE arcade_attempts
+        SET attempts_left = ?, reset_at = ?
+        WHERE user_id = ? AND game_id = ?
+    """, (attempts_left, reset_at, uid, game_id))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "attempts_left": attempts_left,
+        "reset_at": reset_at,
+        "remaining_seconds": max(0, reset_at - now)
+    })
+
 @app.route('/api/rewards', methods=['GET'])
 def get_rewards_history():
     init_data = request.headers.get("X-Telegram-Init-Data")

@@ -290,6 +290,16 @@
                     <div class="arcade-game-name">COSMIC TUNNEL</div>
                     <div class="arcade-game-desc">Dodge asteroids. Collect energy.</div>
                     <div class="arcade-game-status">▶ PLAY NOW</div>
+
+                    <div class="arcade-attempts-panel">
+                        <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
+
+                        <div class="arcade-attempts-list">
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -297,6 +307,15 @@
                     <div class="arcade-game-name">ASTEROID RUSH</div>
                     <div class="arcade-game-desc">Navigate the asteroid field.</div>
                     <div class="arcade-game-status">COMING SOON</div>
+                    <div class="arcade-attempts-panel">
+                        <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
+
+                        <div class="arcade-attempts-list">
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                        </div>
+                    </div>                    
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -304,6 +323,15 @@
                     <div class="arcade-game-name">PLANET DEFENDER</div>
                     <div class="arcade-game-desc">Protect the cosmic planets.</div>
                     <div class="arcade-game-status">COMING SOON</div>
+                    <div class="arcade-attempts-panel">
+                        <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
+
+                        <div class="arcade-attempts-list">
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                        </div>
+                    </div>                    
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -311,6 +339,15 @@
                     <div class="arcade-game-name">CRYSTAL QUEST</div>
                     <div class="arcade-game-desc">Discover hidden space crystals.</div>
                     <div class="arcade-game-status">COMING SOON</div>
+                    <div class="arcade-attempts-panel">
+                        <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
+
+                        <div class="arcade-attempts-list">
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                        </div>
+                    </div>                    
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -318,6 +355,15 @@
                     <div class="arcade-game-name">GALAXY PILOT</div>
                     <div class="arcade-game-desc">Master your spacecraft.</div>
                     <div class="arcade-game-status">COMING SOON</div>
+                    <div class="arcade-attempts-panel">
+                        <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
+
+                        <div class="arcade-attempts-list">
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                        </div>
+                    </div>                    
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -325,6 +371,15 @@
                     <div class="arcade-game-name">STAR HUNTER</div>
                     <div class="arcade-game-desc">Chase the falling stars.</div>
                     <div class="arcade-game-status">COMING SOON</div>
+                    <div class="arcade-attempts-panel">
+                        <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
+
+                        <div class="arcade-attempts-list">
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                            <div class="arcade-attempt">ϟ</div>
+                        </div>
+                    </div>                    
                 </div>
 
 
@@ -354,7 +409,7 @@
 
                 <div class="cosmic-hud-box">
                     <small>TIME</small>
-                    <strong id="cosmic-timer">60</strong>
+                    <strong id="cosmic-timer">90</strong>
                 </div>
 
                 <div class="cosmic-hud-box">
@@ -375,6 +430,13 @@
             <div class="cosmic-game-controls-hint">
                 SWIPE LEFT & RIGHT TO CONTROL YOUR SPACECRAFT
             </div>
+            <button
+    id="cosmic-fire-btn"
+    class="cosmic-control-btn"
+    onclick="fireCosmicWeapon()"
+    style="display:none;">
+    ⚡ FIRE
+</button>
 
             <!-- ⏸️ PAUSE WINDOW -->
             <div id="cosmic-pause-overlay" class="cosmic-overlay"
@@ -415,6 +477,21 @@
                             onclick="exitCosmicGame()">🌌 BACK TO ARCADE</button>
                 </div>
             </div>
+            <!-- 👽 ALIEN WARNING WINDOW -->
+<div id="cosmic-alien-warning" class="cosmic-overlay"
+     style="display:none;">
+    <div class="cosmic-popup">
+        <div class="cosmic-popup-icon">👽</div>
+        <h2>WARNING!</h2>
+        <p>UNKNOWN LIFE FORMS DETECTED</p>
+        <strong>PREPARE FOR ALIEN ENCOUNTER!</strong>
+        <p>Get ready, Space Pilot...</p>
+        <button class="action-btn ref-btn"
+        onclick="startCosmicAlienPhase()">
+    ⚡ ENTER ALIEN ZONE
+</button>
+    </div>
+</div>
 
         </div>
 
@@ -948,7 +1025,7 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
 
         function formatTime(seconds) { const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); const s = seconds % 60; return `${h}h ${m}m ${s}s`; }
         
-        function switchTab(pageId, element) {
+function switchTab(pageId, element) {
     const targetPage = document.getElementById(pageId);
 
     if (!targetPage || !element) {
@@ -975,7 +1052,12 @@ async function sendRewardToken(platform, type, isDouble, customPoints = 0) {
     }
 
     element.classList.add('active');
+
+    if (pageId === 'arcade-page') {
+        loadArcadeAttempts();
+    }
 }
+
 async function openRewardsHistory() {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -1435,21 +1517,88 @@ let cosmicShip = null;
 let cosmicRings = [];
 let cosmicAsteroids = [];
 let cosmicCrystals = [];
+let cosmicAliens = [];
+let cosmicShots = [];
+let cosmicAlienShots = [];
+let cosmicEffects = [];
+let cosmicLastShotTime = 0;
 let cosmicStars = [];
 
 let cosmicScore = 0;
 let cosmicHearts = 3;
 let cosmicTime = 60;
+let cosmicPhase = 1;
 
 let cosmicRunning = false;
 let cosmicPaused = false;
 let cosmicSoundEnabled = true;
+let cosmicEngineOscillator = null;
+let cosmicEngineGain = null;
 
 let cosmicLastTime = 0;
 let cosmicGameClock = null;
 
 let cosmicShipTargetX = 0;
 let cosmicInvulnerable = false;
+let cosmicAttemptConsumed = false;
+let cosmicAttemptRequestPending = false;
+// 🎮 تحديث عدادات محاولات ألعاب Arcade
+
+async function loadArcadeAttempts() {
+    try {
+        const response = await fetch('/api/arcade/attempts', {
+            method: 'GET',
+            headers: {
+                'X-Telegram-Init-Data': tg.initData
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            console.error("Arcade attempts error:", data.error);
+            return;
+        }
+
+        const gameIds = [
+            "cosmic-tunnel",
+            "asteroid-rush",
+            "planet-defender",
+            "crystal-quest",
+            "galaxy-pilot",
+            "star-hunter"
+        ];
+
+        const cards = document.querySelectorAll('.arcade-game-card');
+
+        cards.forEach((card, index) => {
+            const gameId = gameIds[index];
+            const gameData = data.games[gameId];
+
+            if (!gameData) return;
+
+            const title = card.querySelector('.arcade-attempts-title');
+            const attempts = card.querySelectorAll('.arcade-attempt');
+
+            if (!title) return;
+
+            title.textContent =
+                `${gameData.attempts_left} ATTEMPTS LEFT`;
+
+            attempts.forEach((attempt, attemptIndex) => {
+                const available = attemptIndex < gameData.attempts_left;
+
+                attempt.style.opacity = available ? '1' : '0.2';
+                attempt.style.filter = available
+                    ? 'none'
+                    : 'grayscale(1)';
+            });
+        });
+
+    } catch (error) {
+        console.error("Failed to load arcade attempts:", error);
+    }
+}
 
 function createCosmicScene() {
 
@@ -1666,16 +1815,65 @@ function createCosmicSpaceship() {
     cockpit.position.set(0, 0.48, -0.25);
     cosmicShip.add(cockpit);
 
-    // خوذة رائد الفضاء
-    const astronautHelmet = new THREE.Mesh(
-        new THREE.SphereGeometry(0.27, 20, 20),
-        new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            metalness: 0.8,
-            roughness: 0.15,
-            emissive: 0x283c77
+    // خوذة رائد الفضاء الاحترافية
+    const astronautHelmet = new THREE.Group();
+
+    const helmetMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf2f5ff,
+        metalness: 0.85,
+        roughness: 0.18
+    });
+
+    const visorMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x102b55,
+        metalness: 0.65,
+        roughness: 0.12,
+        transparent: true,
+        opacity: 0.92,
+        clearcoat: 1
+    });
+
+    // الهيكل الخارجي للخوذة
+    const helmetShell = new THREE.Mesh(
+        new THREE.SphereGeometry(0.34, 32, 32),
+        helmetMaterial
+    );
+
+    astronautHelmet.add(helmetShell);
+
+    // الزجاج الأمامي
+    const helmetVisor = new THREE.Mesh(
+        new THREE.SphereGeometry(0.27, 32, 32),
+        visorMaterial
+    );
+
+    helmetVisor.scale.set(1, 0.78, 0.42);
+    helmetVisor.position.z = 0.22;
+    astronautHelmet.add(helmetVisor);
+
+    // لمعة سماوية على الزجاج
+    const visorShine = new THREE.Mesh(
+        new THREE.SphereGeometry(0.035, 16, 16),
+        new THREE.MeshBasicMaterial({
+            color: 0x9af5ff
         })
     );
+
+    visorShine.position.set(-0.09, 0.09, 0.34);
+    astronautHelmet.add(visorShine);
+
+    // جانبا الخوذة
+    for (let side of [-1, 1]) {
+
+        const helmetSide = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.09, 0.09, 0.08, 20),
+            helmetMaterial
+        );
+
+        helmetSide.rotation.z = Math.PI / 2;
+        helmetSide.position.set(side * 0.32, 0, 0);
+        astronautHelmet.add(helmetSide);
+    }
 
     astronautHelmet.position.set(0, 0.58, 0.05);
     cosmicShip.add(astronautHelmet);
@@ -1710,6 +1908,125 @@ function createCosmicSpaceship() {
     astronautBody.add(suitCenter);
     astronautBody.add(suitTop);
     astronautBody.add(suitBottom);
+    // الذراعان الفضائيان
+    for (let side of [-1, 1]) {
+
+        const arm = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.075, 0.09, 0.38, 20),
+            suitMaterial
+        );
+
+        arm.position.set(side * 0.22, -0.02, 0.02);
+        arm.rotation.z = side * -0.55;
+        astronautBody.add(arm);
+
+        // مفاصل الكتفين
+        const shoulder = new THREE.Mesh(
+            new THREE.SphereGeometry(0.095, 20, 20),
+            suitMaterial
+        );
+
+        shoulder.position.set(side * 0.19, 0.12, 0.02);
+        astronautBody.add(shoulder);
+
+        // القفازات
+        const glove = new THREE.Mesh(
+            new THREE.SphereGeometry(0.085, 20, 20),
+            suitMaterial
+        );
+
+        glove.position.set(side * 0.34, -0.19, 0.02);
+        astronautBody.add(glove);
+
+        // الرجلان
+        const leg = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.085, 0.09, 0.28, 20),
+            suitMaterial
+        );
+
+        leg.position.set(side * 0.09, -0.34, 0);
+        astronautBody.add(leg);
+
+        // الحذاء الفضائي
+        const boot = new THREE.Mesh(
+            new THREE.SphereGeometry(0.095, 20, 20),
+            new THREE.MeshStandardMaterial({
+                color: 0x7889b8,
+                metalness: 0.8,
+                roughness: 0.2
+            })
+        );
+
+        boot.scale.set(1, 0.65, 1.2);
+        boot.position.set(side * 0.09, -0.49, 0.04);
+        astronautBody.add(boot);
+    }
+
+    // لوحة التحكم على الصدر
+    const chestPanel = new THREE.Mesh(
+        new THREE.BoxGeometry(0.16, 0.13, 0.035),
+        new THREE.MeshStandardMaterial({
+            color: 0x243c70,
+            metalness: 0.7,
+            roughness: 0.2,
+            emissive: 0x102c66
+        })
+    );
+
+    chestPanel.position.set(0, 0.02, 0.17);
+    astronautBody.add(chestPanel);
+
+    // أضواء لوحة الصدر
+    const chestLight = new THREE.Mesh(
+        new THREE.SphereGeometry(0.025, 16, 16),
+        new THREE.MeshBasicMaterial({
+            color: 0x00eaff
+        })
+    );
+
+    chestLight.position.set(0, 0.02, 0.195);
+    astronautBody.add(chestLight);  
+    // حقيبة الأكسجين خلف الظهر
+    const oxygenPack = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 0.32, 0.13),
+        new THREE.MeshStandardMaterial({
+            color: 0x667ba8,
+            metalness: 0.85,
+            roughness: 0.2
+        })
+    );
+
+    oxygenPack.position.set(0, 0.02, -0.17);
+    astronautBody.add(oxygenPack);
+
+    // إضاءة سماوية على الكتفين
+    for (let side of [-1, 1]) {
+
+        const shoulderLight = new THREE.Mesh(
+            new THREE.SphereGeometry(0.045, 16, 16),
+            new THREE.MeshBasicMaterial({
+                color: 0x00eaff
+            })
+        );
+
+        shoulderLight.position.set(
+            side * 0.2,
+            0.13,
+            0.105
+        );
+
+        astronautBody.add(shoulderLight);
+    }
+
+    // ضوء الطاقة على الحقيبة
+    const oxygenLight = new THREE.PointLight(
+        0x00cfff,
+        0.8,
+        1.5
+    );
+
+    oxygenLight.position.set(0, 0.05, -0.25);
+    astronautBody.add(oxygenLight);      
 
     astronautBody.position.set(0, 0.12, 0.12);
     cosmicShip.add(astronautBody);    
@@ -1804,11 +2121,11 @@ function createCosmicAsteroid() {
 
     asteroid.add(glow);
 
-    asteroid.position.set(
-        (Math.random() - 0.5) * 9,
-        (Math.random() - 0.5) * 5,
-        -100
-    );
+asteroid.position.set(
+    (Math.random() - 0.5) * 8,
+    -1.5 + (Math.random() - 0.5) * 1.2,
+    -100
+);
 
     asteroid.userData.type = 'asteroid';
 
@@ -1848,7 +2165,7 @@ function createCosmicCrystal() {
 
     crystal.position.set(
         (Math.random() - 0.5) * 8,
-        (Math.random() - 0.5) * 4,
+        -1.5 + (Math.random() - 0.5) * 1.2,
         -100
     );
 
@@ -1856,6 +2173,344 @@ function createCosmicCrystal() {
 
     cosmicScene.add(crystal);
     cosmicCrystals.push(crystal);
+}
+
+
+function createCosmicAlien() {
+
+    const alien = new THREE.Group();
+
+    const greenMaterial = new THREE.MeshStandardMaterial({
+        color: 0x19ffc0,
+        emissive: 0x00cc88,
+        emissiveIntensity: 1.8,
+        roughness: 0.28
+    });
+
+    const darkEyeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x080812,
+        roughness: 0.12
+    });
+
+    const pinkMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff5b91
+    });
+
+    const cyanMaterial = new THREE.MeshBasicMaterial({
+        color: 0x75ffe5
+    });
+
+    // الجسم الطويل المستدير
+    const body = new THREE.Mesh(
+        new THREE.SphereGeometry(0.72, 32, 32),
+        greenMaterial
+    );
+
+    body.scale.set(1.08, 1.55, 0.78);
+    body.position.y = 0;
+    alien.add(body);
+
+    // العينان السوداوان الكبيرتان
+    for (let side of [-1, 1]) {
+
+        const eye = new THREE.Mesh(
+            new THREE.SphereGeometry(0.19, 32, 32),
+            darkEyeMaterial
+        );
+
+        const eyeShine = new THREE.Mesh(
+            new THREE.SphereGeometry(0.045, 16, 16),
+            new THREE.MeshBasicMaterial({
+                color: 0xffffff
+            })
+        );
+
+        eyeShine.position.set(
+            side * 0.29 - 0.035,
+            0.49,
+            0.58
+        );
+
+        alien.add(eyeShine);       
+
+        eye.scale.set(1.35, 1.05, 0.4);
+        eye.position.set(
+            side * 0.29,
+            0.43,
+            0.51
+        );
+
+        alien.add(eye);
+
+        // الخدود الوردية
+        const cheek = new THREE.Mesh(
+            new THREE.SphereGeometry(0.065, 20, 20),
+            pinkMaterial
+        );
+
+        cheek.position.set(
+            side * 0.49,
+            0.12,
+            0.49
+        );
+
+        alien.add(cheek);
+
+        // الأذنان الصغيرتان
+        const ear = new THREE.Mesh(
+            new THREE.SphereGeometry(0.16, 24, 24),
+            greenMaterial
+        );
+
+        ear.scale.set(0.75, 0.55, 0.7);
+        ear.position.set(
+            side * 0.72,
+            0.72,
+            0
+        );
+
+        alien.add(ear);
+
+        // الذراعان
+        const arm = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.13, 0.15, 0.85, 20),
+            greenMaterial
+        );
+
+        arm.position.set(
+            side * 0.68,
+            -0.38,
+            0
+        );
+
+        arm.rotation.z = side * -0.2;
+        alien.add(arm);
+
+        const hand = new THREE.Mesh(
+            new THREE.SphereGeometry(0.15, 20, 20),
+            greenMaterial
+        );
+
+        hand.position.set(
+            side * 0.76,
+            -0.82,
+            0
+        );
+
+        alien.add(hand);
+
+        // الرجلان
+        const leg = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.16, 0.17, 0.85, 20),
+            greenMaterial
+        );
+
+        leg.position.set(
+            side * 0.29,
+            -1.25,
+            0
+        );
+
+        alien.add(leg);
+
+        const foot = new THREE.Mesh(
+            new THREE.SphereGeometry(0.17, 20, 20),
+            greenMaterial
+        );
+
+        foot.scale.set(1, 0.7, 1);
+        foot.position.set(
+            side * 0.29,
+            -1.68,
+            0
+        );
+
+        alien.add(foot);
+
+        // قرنا الاستشعار
+        const antenna = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.035, 0.045, 0.48, 16),
+            greenMaterial
+        );
+
+        antenna.position.set(
+            side * 0.18,
+            1.25,
+            0
+        );
+
+        alien.add(antenna);
+
+        const antennaTip = new THREE.Mesh(
+            new THREE.SphereGeometry(0.09, 20, 20),
+            cyanMaterial
+        );
+
+        antennaTip.position.set(
+            side * 0.18,
+            1.5,
+            0
+        );
+
+        alien.add(antennaTip);
+        antennaTip.userData.isAntennaTip = true;
+        antennaTip.userData.baseX = side * 0.18;
+    }
+
+    // الفم الصغير
+    const mouth = new THREE.Mesh(
+        new THREE.SphereGeometry(0.035, 16, 16),
+        pinkMaterial
+    );
+
+    mouth.scale.set(1.8, 0.35, 0.5);
+    mouth.position.set(0, 0.22, 0.525);
+    alien.add(mouth);
+
+    // وهج نيون خفيف حول الجسم
+    const glow = new THREE.PointLight(
+        0x00ffbb,
+        1.2,
+        4
+    );
+
+    glow.position.set(0, 0.2, 0.4);
+    alien.add(glow);
+
+    alien.position.set(
+        (Math.random() - 0.5) * 7,
+        -1.2,
+        -75
+    );
+
+    alien.userData.type = 'alien';
+    alien.userData.floatOffset = Math.random() * Math.PI * 2;
+
+    cosmicScene.add(alien);
+    cosmicAliens.push(alien);
+}
+
+function createCosmicPlayerShot() {
+
+    const shot = new THREE.Group();
+
+    const laserMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00eaff,
+        emissive: 0x00cfff,
+        emissiveIntensity: 4,
+        metalness: 0.4,
+        roughness: 0.15
+    });
+
+    const beam = new THREE.Mesh(
+        new THREE.SphereGeometry(0.13, 20, 20),
+        laserMaterial
+    );
+
+    beam.scale.set(1, 1, 4);
+    shot.add(beam);
+
+    const glow = new THREE.PointLight(
+        0x00dfff,
+        2,
+        5
+    );
+
+    shot.add(glow);
+
+    shot.position.set(
+        cosmicShip.position.x,
+        cosmicShip.position.y,
+        cosmicShip.position.z - 1.2
+    );
+
+    shot.userData.type = 'player-shot';
+
+    cosmicScene.add(shot);
+    cosmicShots.push(shot);
+}
+
+function createCosmicAlienShot(alien) {
+
+    const shot = new THREE.Group();
+
+    const energyMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff35d3,
+        emissive: 0xff00aa,
+        emissiveIntensity: 4,
+        metalness: 0.3,
+        roughness: 0.15
+    });
+
+    const energyBall = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 20, 20),
+        energyMaterial
+    );
+
+    energyBall.scale.set(1, 1, 1.8);
+    shot.add(energyBall);
+
+    const glow = new THREE.PointLight(
+        0xff00cc,
+        2,
+        5
+    );
+
+    shot.add(glow);
+
+    shot.position.set(
+        alien.position.x,
+        alien.position.y,
+        alien.position.z + 0.8
+    );
+
+    shot.userData.type = 'alien-shot';
+
+    cosmicScene.add(shot);
+    cosmicAlienShots.push(shot);
+}
+
+function createCosmicEffect(position) {
+
+    const effect = new THREE.Group();
+
+    const glowMaterial = new THREE.MeshBasicMaterial({
+        color: 0x39ff14,
+        transparent: true,
+        opacity: 0.9
+    });
+
+    const flash = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 24, 24),
+        glowMaterial
+    );
+
+    effect.add(flash);
+
+    effect.position.copy(position);
+
+    effect.userData.life = 0.35;
+    effect.userData.maxLife = 0.35;
+
+    cosmicScene.add(effect);
+    cosmicEffects.push(effect);
+}
+
+function fireCosmicWeapon() {
+
+    if (!cosmicRunning || cosmicPaused) return;
+
+    if (cosmicPhase !== 2) return;
+
+    const now = Date.now();
+
+    if (now - cosmicLastShotTime < 350) return;
+
+    cosmicLastShotTime = now;
+
+    createCosmicPlayerShot();
+
+    playCosmicTone(720, 0.12, 'triangle');
 }
 
 // ==========================================
@@ -1977,6 +2632,46 @@ function playCosmicTone(frequency, duration, type = 'sine') {
     }
 }
 
+function startCosmicEngineSound() {
+
+    if (!cosmicSoundEnabled) return;
+
+    const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    if (cosmicEngineOscillator) return;
+
+    const audioContext = new AudioContextClass();
+
+    cosmicEngineOscillator = audioContext.createOscillator();
+    cosmicEngineGain = audioContext.createGain();
+
+    cosmicEngineOscillator.type = 'sawtooth';
+    cosmicEngineOscillator.frequency.value = 55;
+
+    cosmicEngineGain.gain.value = 0.025;
+
+    cosmicEngineOscillator.connect(cosmicEngineGain);
+    cosmicEngineGain.connect(audioContext.destination);
+
+    cosmicEngineOscillator.start();
+}
+
+function stopCosmicEngineSound() {
+
+    if (cosmicEngineOscillator) {
+        cosmicEngineOscillator.stop();
+        cosmicEngineOscillator.disconnect();
+        cosmicEngineOscillator = null;
+    }
+
+    if (cosmicEngineGain) {
+        cosmicEngineGain.disconnect();
+        cosmicEngineGain = null;
+    }
+}
 
 function toggleGameSound() {
 
@@ -1993,7 +2688,15 @@ function toggleGameSound() {
     }
 
     if (cosmicSoundEnabled) {
+
+        if (cosmicRunning && !cosmicPaused) {
+            startCosmicEngineSound();
+        }
+
         playCosmicTone(600, 0.15);
+
+    } else {
+        stopCosmicEngineSound();
     }
 }
 
@@ -2003,6 +2706,8 @@ function toggleGameSound() {
 
 let cosmicSpawnTimer = 0;
 let cosmicCrystalTimer = 0;
+let cosmicAlienSpawnTimer = 0;
+let cosmicAlienAttackTimer = 0;
 
 function spawnCosmicObjects(delta) {
 
@@ -2072,9 +2777,180 @@ function updateCosmicGame(delta) {
         }
     });
 
-    // إنشاء العوائق والبلورات
-    spawnCosmicObjects(delta);
+    // إنشاء العوائق والبلورات في المرحلة الأولى فقط
+    if (cosmicPhase === 1) {
+        spawnCosmicObjects(delta);
+    }
+    // ظهور الفضائيين في المرحلة الثانية
+if (cosmicPhase === 2) {
 
+    cosmicAlienSpawnTimer += delta;
+
+    if (cosmicAlienSpawnTimer >= 2.5) {
+
+        createCosmicAlien();
+        cosmicAlienSpawnTimer = 0;
+    }
+}
+
+    // تحريك الفضائيين في المرحلة الثانية
+    for (let i = cosmicAliens.length - 1; i >= 0; i--) {
+
+        const alien = cosmicAliens[i];
+        const floatTime =
+            Date.now() * 0.003 + alien.userData.floatOffset;
+
+        alien.position.z +=
+            cosmicGameSpeed * delta * 0.65;
+
+        alien.position.x +=
+            Math.sin(floatTime) * delta * 0.8;
+
+        alien.position.y =
+            -1.2 + Math.sin(floatTime * 1.4) * 0.22;
+
+        alien.rotation.y =
+            Math.sin(floatTime) * 0.18;
+
+        alien.rotation.z =
+            Math.sin(floatTime * 0.8) * 0.08;
+        alien.children.forEach(part => {
+
+            if (part.userData.isAntennaTip) {
+                part.position.x =
+                    part.userData.baseX +
+                    Math.sin(floatTime * 2) * 0.045;
+            }
+
+        });            
+
+        if (alien.position.z > 10) {
+
+            cosmicScene.remove(alien);
+            cosmicAliens.splice(i, 1);
+        }
+    }
+
+    // إطلاق الفضائيين لطلقات الطاقة
+    if (cosmicPhase === 2) {
+
+        cosmicAlienAttackTimer += delta;
+
+        if (cosmicAlienAttackTimer >= 1.8) {
+
+            if (cosmicAliens.length > 0) {
+
+                const randomIndex = Math.floor(
+                    Math.random() * cosmicAliens.length
+                );
+
+                createCosmicAlienShot(
+                    cosmicAliens[randomIndex]
+                );
+            }
+
+            cosmicAlienAttackTimer = 0;
+        }
+    }
+
+    // تحريك طلقات المركبة وفحص إصابة الفضائيين
+    for (let i = cosmicShots.length - 1; i >= 0; i--) {
+
+        const shot = cosmicShots[i];
+
+        shot.position.z -= 65 * delta;
+
+        let hitAlien = false;
+
+        for (let j = cosmicAliens.length - 1; j >= 0; j--) {
+
+            const alien = cosmicAliens[j];
+
+            const dx = Math.abs(
+                shot.position.x - alien.position.x
+            );
+
+            const dy = Math.abs(
+                shot.position.y - alien.position.y
+            );
+
+            const dz = Math.abs(
+                shot.position.z - alien.position.z
+            );
+
+            if (dx < 0.9 && dy < 0.9 && dz < 1.5) {
+                createCosmicEffect(alien.position);
+
+                cosmicScene.remove(alien);
+                cosmicAliens.splice(j, 1);
+
+                cosmicScore += 20;
+                updateCosmicHUD();
+
+                playCosmicTone(1100, 0.18, 'triangle');
+
+                hitAlien = true;
+                break;
+            }
+        }
+
+        if (hitAlien || shot.position.z < -100) {
+
+            cosmicScene.remove(shot);
+            cosmicShots.splice(i, 1);
+        }
+    }
+
+    // تحريك طلقات الفضائيين وفحص إصابة المركبة
+    for (let i = cosmicAlienShots.length - 1; i >= 0; i--) {
+
+        const shot = cosmicAlienShots[i];
+
+        shot.position.z += 35 * delta;
+
+        if (checkCosmicCollision(shot, 0.9)) {
+
+            cosmicScene.remove(shot);
+            cosmicAlienShots.splice(i, 1);
+
+            loseCosmicHeart();
+            continue;
+        }
+
+        if (shot.position.z > 10) {
+
+            cosmicScene.remove(shot);
+            cosmicAlienShots.splice(i, 1);
+        }
+    }
+
+    // تحريك مؤثرات الطاقة وتلاشيها
+    for (let i = cosmicEffects.length - 1; i >= 0; i--) {
+
+        const effect = cosmicEffects[i];
+
+        effect.userData.life -= delta;
+
+        const progress = 1 - (
+            effect.userData.life / effect.userData.maxLife
+        );
+
+        const scale = 1 + progress * 2;
+
+        effect.scale.setScalar(scale);
+
+        effect.children[0].material.opacity = Math.max(
+            0,
+            0.9 * (1 - progress)
+        );
+
+        if (effect.userData.life <= 0) {
+
+            cosmicScene.remove(effect);
+            cosmicEffects.splice(i, 1);
+        }
+    }    
+    
     // تحريك الكويكبات
     for (let i = cosmicAsteroids.length - 1; i >= 0; i--) {
 
@@ -2172,13 +3048,20 @@ function loseCosmicHeart() {
 
     updateCosmicHUD();
 
-    playCosmicTone(130, 0.35, 'sawtooth');
+    if (cosmicSoundEnabled) {
+        playCosmicTone(95, 0.22, 'sawtooth');
+
+        setTimeout(() => {
+            if (cosmicSoundEnabled) {
+                playCosmicTone(65, 0.35, 'square');
+            }
+        }, 120);
+    }
 
     if (cosmicHearts <= 0) {
         finishCosmicGame();
     }
 }
-
 
 function updateCosmicHUD() {
 
@@ -2207,11 +3090,19 @@ function updateCosmicHUD() {
         );
     }
 }
-
-
 function finishCosmicGame() {
 
     cosmicRunning = false;
+    stopCosmicEngineSound();
+
+    // إخفاء زر إطلاق النار عند انتهاء الجولة
+    const fireButton = document.getElementById(
+        'cosmic-fire-btn'
+    );
+
+    if (fireButton) {
+        fireButton.style.display = 'none';
+    }
 
     const overlay = document.getElementById(
         'cosmic-result-overlay'
@@ -2249,6 +3140,38 @@ function finishCosmicGame() {
     }
 }
 
+function startCosmicAlienPhase() {
+
+    const warning = document.getElementById(
+        'cosmic-alien-warning'
+    );
+
+    if (warning) {
+        warning.style.display = 'none';
+    }
+    const fireButton = document.getElementById(
+    'cosmic-fire-btn'
+);
+
+if (fireButton) {
+    fireButton.style.display = 'block';
+}
+
+    cosmicPhase = 2;
+    cosmicAlienSpawnTimer = 0;
+    cosmicAlienAttackTimer = 0;
+    cosmicTime = 30;
+    cosmicRunning = true;
+    cosmicPaused = false;
+    cosmicLastTime = 0;
+
+    updateCosmicHUD();
+    startCosmicEngineSound();
+
+    cosmicAnimationId = requestAnimationFrame(
+        cosmicGameLoop
+    );
+}
 
 // حلقة تشغيل الرسوم ثلاثية الأبعاد
 function cosmicGameLoop(timestamp) {
@@ -2272,10 +3195,29 @@ function cosmicGameLoop(timestamp) {
 
         cosmicTime = 0;
         updateCosmicHUD();
-        finishCosmicGame();
+
+        // نهاية مرحلة النفق
+        if (cosmicPhase === 1) {
+
+            cosmicRunning = false;
+            stopCosmicEngineSound();
+
+            const warning = document.getElementById(
+                'cosmic-alien-warning'
+            );
+
+            if (warning) {
+                warning.style.display = 'flex';
+            }
+
+        } else {
+
+            // نهاية مرحلة مواجهة الفضائيين
+            finishCosmicGame();
+        }
+
         return;
     }
-
     updateCosmicHUD();
     updateCosmicGame(delta);
 
@@ -2319,10 +3261,48 @@ function openArcadeGame(gameId) {
 
 
 // بدء جولة جديدة
-function startCosmicRound() {
+async function startCosmicRound() {
+    if (cosmicAttemptRequestPending) return;
+
+    cosmicAttemptRequestPending = true;
+    cosmicAttemptConsumed = false;
+
+    try {
+        const response = await fetch('/api/arcade/consume', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({
+                game_id: 'cosmic-tunnel'
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            await loadArcadeAttempts();
+
+            alert("No attempts left! Please try again after the cooldown.");
+
+            exitCosmicGame();
+            return;
+        }
+
+        cosmicAttemptConsumed = true;
+        await loadArcadeAttempts();
+
+    } catch (error) {
+        console.error("Game attempt check failed:", error);
+        alert("Could not verify attempts. Please try again.");
+        return;
+
+    } finally {
+        cosmicAttemptRequestPending = false;
+    }
 
     if (!cosmicGameInitialized) {
-
         const success = createCosmicScene();
 
         if (!success) {
@@ -2355,6 +3335,31 @@ function startCosmicRound() {
     cosmicAsteroids = [];
     cosmicCrystals = [];
 
+    // تنظيف الفضائيين والطلقات والتأثيرات القديمة
+    cosmicAliens.forEach(object => {
+        cosmicScene.remove(object);
+    });
+
+    cosmicShots.forEach(object => {
+        cosmicScene.remove(object);
+    });
+
+    cosmicAlienShots.forEach(object => {
+        cosmicScene.remove(object);
+    });
+
+    cosmicEffects.forEach(object => {
+        cosmicScene.remove(object);
+    });
+
+    cosmicAliens = [];
+    cosmicShots = [];
+    cosmicAlienShots = [];
+    cosmicEffects = [];
+
+    cosmicAlienSpawnTimer = 0;
+    cosmicLastShotTime = 0;
+
     // إعادة ضبط حلقات النفق
     cosmicRings.forEach((ring, index) => {
         ring.position.z = -index * 9;
@@ -2368,7 +3373,8 @@ function startCosmicRound() {
     // إعادة ضبط بيانات الجولة
     cosmicScore = 0;
     cosmicHearts = 3;
-    cosmicTime = 60;
+    cosmicTime = 90;
+    cosmicPhase = 1;
     cosmicGameSpeed = 18;
 
     cosmicShipTargetX = 0;
@@ -2381,6 +3387,8 @@ function startCosmicRound() {
     cosmicPaused = false;
     cosmicRunning = true;
 
+    startCosmicEngineSound();
+
     if (cosmicShip) {
         cosmicShip.position.set(0, -1.5, 3);
         cosmicShip.rotation.set(0, 0, 0);
@@ -2390,6 +3398,22 @@ function startCosmicRound() {
     cosmicCamera.lookAt(0, 0, -8);
 
     updateCosmicHUD();
+    // إخفاء زر إطلاق النار عند بداية الجولة
+    const fireButton = document.getElementById(
+        'cosmic-fire-btn'
+    );
+
+    if (fireButton) {
+        fireButton.style.display = 'none';
+    }
+
+    const alienWarning = document.getElementById(
+        'cosmic-alien-warning'
+    );
+
+    if (alienWarning) {
+        alienWarning.style.display = 'none';
+    }
 
     // إخفاء النوافذ
     document.getElementById('cosmic-pause-overlay')
@@ -2416,6 +3440,8 @@ function pauseCosmicGame() {
 
     cosmicPaused = true;
 
+    stopCosmicEngineSound();
+
     if (cosmicAnimationId) {
         cancelAnimationFrame(cosmicAnimationId);
     }
@@ -2431,6 +3457,7 @@ function resumeCosmicGame() {
     if (!cosmicRunning || !cosmicPaused) return;
 
     cosmicPaused = false;
+    startCosmicEngineSound();
     cosmicLastTime = 0;
 
     document.getElementById('cosmic-pause-overlay')
@@ -2455,6 +3482,26 @@ function exitCosmicGame() {
     cosmicRunning = false;
     cosmicPaused = false;
 
+    stopCosmicEngineSound();
+
+    // إخفاء زر إطلاق النار
+    const fireButton = document.getElementById(
+        'cosmic-fire-btn'
+    );
+
+    if (fireButton) {
+        fireButton.style.display = 'none';
+    }
+
+    // إخفاء تحذير الفضائيين
+    const alienWarning = document.getElementById(
+        'cosmic-alien-warning'
+    );
+
+    if (alienWarning) {
+        alienWarning.style.display = 'none';
+    }
+
     if (cosmicAnimationId) {
         cancelAnimationFrame(cosmicAnimationId);
     }
@@ -2478,6 +3525,8 @@ function exitCosmicGame() {
 
     document.getElementById('tab-arcade')
         .classList.add('active');
+
+    loadArcadeAttempts();
 }
 
     </script>

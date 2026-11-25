@@ -381,6 +381,71 @@ h2 {
     box-shadow: 0 0 12px rgba(0, 200, 255, 0.35);
 }
 
+
+/* ⚡ CYBERPUNK ATTEMPTS PANEL */
+
+.arcade-attempts-panel {
+    position: relative;
+    margin-top: 16px;
+    padding: 12px 8px 10px;
+    border: 1px solid rgba(255, 45, 190, 0.55);
+    border-radius: 11px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 25, 170, 0.12),
+        rgba(0, 225, 255, 0.10)
+    );
+    box-shadow:
+        0 0 12px rgba(255, 35, 190, 0.12),
+        inset 0 0 12px rgba(0, 225, 255, 0.06);
+}
+
+.arcade-attempts-title {
+    color: #ff72df;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    margin-bottom: 11px;
+    text-shadow: 0 0 9px rgba(255, 45, 190, 0.8);
+}
+
+.arcade-attempts-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 13px;
+}
+
+.arcade-attempt {
+    width: 34px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8ffaff;
+    font-size: 21px;
+    font-weight: bold;
+    background: linear-gradient(
+        145deg,
+        #173b58,
+        #25113f
+    );
+    border: 1px solid #25eaff;
+    clip-path: polygon(
+        25% 0,
+        75% 0,
+        100% 25%,
+        100% 75%,
+        75% 100%,
+        25% 100%,
+        0 75%,
+        0 25%
+    );
+    filter: drop-shadow(0 0 7px #00dfff);
+    text-shadow: 0 0 9px #00eaff;
+}
+
+
 @media (max-width: 360px) {
     .arcade-games-grid {
         gap: 9px;
@@ -393,6 +458,58 @@ h2 {
     .arcade-game-name {
         font-size: 10px;
     }
+
+    .arcade-attempts-panel {
+        margin-top: 13px;
+        padding: 10px 6px 8px;
+    }
+
+    .arcade-attempts-title {
+        font-size: 8px;
+        letter-spacing: 0.8px;
+    }
+
+    .arcade-attempts-list {
+        gap: 9px;
+    }
+
+    .arcade-attempt {
+        width: 30px;
+        height: 34px;
+        font-size: 19px;
+    }
+}
+/* ✨ ARCADE CYBERPUNK FINAL POLISH */
+
+.arcade-game-card {
+    background:
+        linear-gradient(145deg, rgba(35, 15, 55, 0.97), rgba(8, 22, 45, 0.98));
+}
+
+.arcade-game-card:hover {
+    border-color: rgba(255, 45, 190, 0.8);
+    box-shadow:
+        0 0 12px rgba(255, 45, 190, 0.22),
+        0 0 22px rgba(0, 225, 255, 0.14);
+}
+
+.arcade-attempt {
+    transition:
+        transform 0.2s ease,
+        filter 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.arcade-attempt:hover {
+    transform: translateY(-3px) scale(1.08);
+    filter: brightness(1.3) drop-shadow(0 0 9px #ff35c8);
+}
+
+.arcade-attempts-panel {
+    box-shadow:
+        0 0 12px rgba(255, 35, 190, 0.16),
+        0 0 18px rgba(0, 225, 255, 0.08),
+        inset 0 0 15px rgba(0, 225, 255, 0.06);
 }
 
 /* =========================================
