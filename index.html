@@ -472,13 +472,13 @@
                         Great flying, Space Pilot!
                     </p>
 
-                    <button class="action-btn ref-btn"
-                            onclick="restartCosmicGame()">↻ PLAY AGAIN</button>
+                <button class="action-btn ref-btn"
+                        onclick="restartCosmicGame()">↻ PLAY AGAIN</button>
 
-                    <button class="action-btn"
-                            onclick="exitCosmicGame()">🌌 BACK TO ARCADE</button>
-                </div>
+                <button class="action-btn ref-btn"
+                        onclick="exitCosmicGame()">🌌 BACK TO ARCADE</button>
             </div>
+        </div>
             <!-- 👽 ALIEN WARNING WINDOW -->
 <div id="cosmic-alien-warning" class="cosmic-overlay"
      style="display:none;">
@@ -1530,6 +1530,7 @@ let cosmicScore = 0;
 let cosmicHearts = 3;
 let cosmicTime = 60;
 let cosmicLastHUDSecond = -1;
+let cosmicSessionToken = 0;
 let cosmicPhase = 1;
 
 let cosmicRunning = false;
@@ -2457,16 +2458,6 @@ function createCosmicAlien() {
     mouth.position.set(0, 0.22, 0.525);
     alien.add(mouth);
 
-    // إضاءة خضراء حول الفضائي
-    const glow = new THREE.PointLight(
-        0x20ff65,
-        1.5,
-        4
-    );
-
-    glow.position.set(0, 0.2, 0.4);
-    alien.add(glow);
-
     alien.position.set(
         (Math.random() - 0.5) * 7,
         -1.2,
@@ -2500,14 +2491,6 @@ function createCosmicPlayerShot() {
     beam.scale.set(1, 1, 4);
     shot.add(beam);
 
-    const glow = new THREE.PointLight(
-        0x00dfff,
-        2,
-        5
-    );
-
-    shot.add(glow);
-
     shot.position.set(
         cosmicShip.position.x,
         cosmicShip.position.y,
@@ -2540,14 +2523,6 @@ function createCosmicAlienShot(alien) {
     energyBall.scale.set(1, 1, 1.8);
     shot.add(energyBall);
 
-    const glow = new THREE.PointLight(
-        0xff00cc,
-        2,
-        5
-    );
-
-    shot.add(glow);
-
     shot.position.set(
         alien.position.x,
         alien.position.y,
@@ -2574,6 +2549,29 @@ function createCosmicAlienShot(alien) {
 
     cosmicScene.add(shot);
     cosmicAlienShots.push(shot);
+}
+
+function disposeCosmicObject(object) {
+
+    if (!object) return;
+
+    object.traverse(child => {
+
+        if (child.geometry) {
+            child.geometry.dispose();
+        }
+
+        if (child.material) {
+
+            if (Array.isArray(child.material)) {
+                child.material.forEach(material => {
+                    material.dispose();
+                });
+            } else {
+                child.material.dispose();
+            }
+        }
+    });
 }
 
 function createCosmicEffect(position) {
@@ -2995,6 +2993,7 @@ if (cosmicPhase === 2) {
         if (alien.position.z > 10) {
 
             cosmicScene.remove(alien);
+            disposeCosmicObject(alien);
             cosmicAliens.splice(i, 1);
         }
     }
@@ -3076,6 +3075,7 @@ if (cosmicPhase === 2) {
                 createCosmicEffect(alien.position);
 
                 cosmicScene.remove(alien);
+                disposeCosmicObject(alien);
                 cosmicAliens.splice(j, 1);
 
                 cosmicScore += 20;
@@ -3091,6 +3091,7 @@ if (cosmicPhase === 2) {
         if (hitAlien || shot.position.z < -100) {
 
             cosmicScene.remove(shot);
+            disposeCosmicObject(shot);
             cosmicShots.splice(i, 1);
         }
     }
@@ -3106,6 +3107,7 @@ if (cosmicPhase === 2) {
         if (checkCosmicCollision(shot, 0.9)) {
 
             cosmicScene.remove(shot);
+            disposeCosmicObject(shot);
             cosmicAlienShots.splice(i, 1);
 
             loseCosmicHeart();
@@ -3115,6 +3117,7 @@ if (cosmicPhase === 2) {
         if (shot.position.z > 10) {
 
             cosmicScene.remove(shot);
+            disposeCosmicObject(shot);
             cosmicAlienShots.splice(i, 1);
         }
     }
@@ -3142,6 +3145,7 @@ if (cosmicPhase === 2) {
         if (effect.userData.life <= 0) {
 
             cosmicScene.remove(effect);
+            disposeCosmicObject(effect);
             cosmicEffects.splice(i, 1);
         }
     }    
@@ -3158,6 +3162,7 @@ if (cosmicPhase === 2) {
         if (checkCosmicCollision(asteroid, 1.15)) {
 
             cosmicScene.remove(asteroid);
+            disposeCosmicObject(asteroid);
             cosmicAsteroids.splice(i, 1);
 
             loseCosmicHeart();
@@ -3167,6 +3172,7 @@ if (cosmicPhase === 2) {
         if (asteroid.position.z > 10) {
 
             cosmicScene.remove(asteroid);
+            disposeCosmicObject(asteroid);
             cosmicAsteroids.splice(i, 1);
         }
     }
@@ -3188,6 +3194,7 @@ if (cosmicPhase === 2) {
             playCosmicTone(880, 0.15, 'sine');
 
             cosmicScene.remove(crystal);
+            disposeCosmicObject(crystal);
             cosmicCrystals.splice(i, 1);
             continue;
         }
@@ -3195,6 +3202,7 @@ if (cosmicPhase === 2) {
         if (crystal.position.z > 10) {
 
             cosmicScene.remove(crystal);
+            disposeCosmicObject(crystal);
             cosmicCrystals.splice(i, 1);
         }
     }
@@ -3471,6 +3479,8 @@ async function startCosmicRound() {
     cosmicAttemptRequestPending = true;
     cosmicAttemptConsumed = false;
 
+    const sessionToken = ++cosmicSessionToken;
+
     try {
         const response = await fetch('/api/arcade/consume', {
             method: 'POST',
@@ -3484,6 +3494,7 @@ async function startCosmicRound() {
         });
 
         const data = await response.json();
+        if (sessionToken !== cosmicSessionToken) return;        
 
         if (!response.ok || !data.success) {
             await loadArcadeAttempts();
@@ -3527,13 +3538,16 @@ async function startCosmicRound() {
         cancelAnimationFrame(cosmicAnimationId);
     }
 
+
     // تنظيف العوائق والبلورات القديمة
     cosmicAsteroids.forEach(object => {
         cosmicScene.remove(object);
+        disposeCosmicObject(object);
     });
 
     cosmicCrystals.forEach(object => {
         cosmicScene.remove(object);
+        disposeCosmicObject(object);
     });
 
     cosmicAsteroids = [];
@@ -3542,18 +3556,22 @@ async function startCosmicRound() {
     // تنظيف الفضائيين والطلقات والتأثيرات القديمة
     cosmicAliens.forEach(object => {
         cosmicScene.remove(object);
+        disposeCosmicObject(object);
     });
 
     cosmicShots.forEach(object => {
         cosmicScene.remove(object);
+        disposeCosmicObject(object);
     });
 
     cosmicAlienShots.forEach(object => {
         cosmicScene.remove(object);
+        disposeCosmicObject(object);
     });
 
     cosmicEffects.forEach(object => {
         cosmicScene.remove(object);
+        disposeCosmicObject(object);
     });
 
     cosmicAliens = [];
@@ -3590,7 +3608,7 @@ async function startCosmicRound() {
     cosmicAlienSpawnTimer = 0;
     cosmicAlienAttackTimer = 0;
     cosmicAlienBurstTimer = 0;
-    cosmicAlienBurstShotsRemaining = 0;    
+    cosmicAlienBurstShotsRemaining = 0;
     cosmicLastTime = 0;
 
     cosmicPaused = false;
@@ -3688,12 +3706,13 @@ function restartCosmicGame() {
 // الخروج إلى صفحة الألعاب
 function exitCosmicGame() {
 
+    cosmicSessionToken++;
+
     cosmicRunning = false;
     cosmicPaused = false;
 
     stopCosmicEngineSound();
 
-    // إخفاء زر إطلاق النار
     const fireButton = document.getElementById(
         'cosmic-fire-btn'
     );
@@ -3702,7 +3721,6 @@ function exitCosmicGame() {
         fireButton.style.display = 'none';
     }
 
-    // إخفاء تحذير الفضائيين
     const alienWarning = document.getElementById(
         'cosmic-alien-warning'
     );
@@ -3713,6 +3731,7 @@ function exitCosmicGame() {
 
     if (cosmicAnimationId) {
         cancelAnimationFrame(cosmicAnimationId);
+        cosmicAnimationId = null;
     }
 
     document.getElementById('cosmic-pause-overlay')
