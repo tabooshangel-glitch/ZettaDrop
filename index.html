@@ -450,10 +450,10 @@
                     <button class="action-btn ref-btn"
                             onclick="resumeCosmicGame()">▶ RESUME</button>
 
-                    <button class="action-btn"
+                    <button class="action-btn ref-btn"
                             onclick="toggleGameSound()">🔊 SOUND</button>
 
-                    <button class="action-btn"
+                    <button class="action-btn ref-btn"
                             onclick="exitCosmicGame()">↩ EXIT GAME</button>
                 </div>
             </div>
@@ -1529,6 +1529,7 @@ let cosmicStars = [];
 let cosmicScore = 0;
 let cosmicHearts = 3;
 let cosmicTime = 60;
+let cosmicLastHUDSecond = -1;
 let cosmicPhase = 1;
 
 let cosmicRunning = false;
@@ -3414,14 +3415,21 @@ function cosmicGameLoop(timestamp) {
 
         return;
     }
-    updateCosmicHUD();
+
+    // تحديث العداد عند تغير الثانية فقط
+    const currentSecond = Math.ceil(cosmicTime);
+
+    if (currentSecond !== cosmicLastHUDSecond) {
+        cosmicLastHUDSecond = currentSecond;
+        updateCosmicHUD();
+    }
+
     updateCosmicGame(delta);
 
     cosmicAnimationId = requestAnimationFrame(
         cosmicGameLoop
     );
 }
-
 // ==========================================
 // PART 8: GAME START, PAUSE & RESTART
 // ==========================================
@@ -3487,7 +3495,7 @@ async function startCosmicRound() {
         }
 
         cosmicAttemptConsumed = true;
-        await loadArcadeAttempts();
+        loadArcadeAttempts();
 
     } catch (error) {
         console.error("Game attempt check failed:", error);
@@ -3570,6 +3578,7 @@ async function startCosmicRound() {
     cosmicScore = 0;
     cosmicHearts = 3;
     cosmicTime = 60;
+    cosmicLastHUDSecond = -1;
     cosmicPhase = 1;
     cosmicGameSpeed = 18;
 
