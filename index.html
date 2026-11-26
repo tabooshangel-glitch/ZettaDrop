@@ -9,12 +9,14 @@
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 </head>
 <body>
-    <button id="lang-btn-text" class="lang-toggle-btn" onclick="toggleLanguage()">🌐 EN/AR</button>
 
     <div class="app-container">
         
         <!-- 🪐 التبويب الأول: البروفايل ونظام الإحالة (Profile Tab) -->
         <div id="home-page" class="page active">
+            <div class="profile-language-row">
+                <button id="lang-btn-text" class="lang-toggle-btn" onclick="toggleLanguage()">🌐 EN/AR</button>
+            </div>
             <div class="space-card profile-card">
                 <div class="neon-avatar">🪐</div>
                 <h2 id="username">Loading Profile...</h2>
@@ -499,9 +501,9 @@
         <div class="nav-bar">
             <div id="tab-profile" class="nav-item active" onclick="switchTab('home-page', this)">🪐 Profile</div>
             <div id="tab-missions" class="nav-item" onclick="switchTab('tasks-page', this)">💎 Missions</div>
+            <div id="tab-arcade" class="nav-item arcade-nav-item" onclick="switchTab('arcade-page', this)">🎮 Arcade</div>
             <div id="tab-spin" class="nav-item" onclick="switchTab('spin-page', this)">🎰 Spin</div>
             <div id="tab-wallet" class="nav-item" onclick="switchTab('wallet-page', this)">💳 Wallet</div>
-            <div id="tab-arcade" class="nav-item" onclick="switchTab('arcade-page', this)">🎮 Arcade</div>
         </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
@@ -1534,6 +1536,9 @@ let cosmicPaused = false;
 let cosmicSoundEnabled = true;
 let cosmicEngineOscillator = null;
 let cosmicEngineGain = null;
+let cosmicAmbientAudioContext = null;
+let cosmicAmbientTimer = null;
+let cosmicAmbientNoteIndex = 0;
 
 let cosmicLastTime = 0;
 let cosmicGameClock = null;
@@ -1579,8 +1584,9 @@ async function loadArcadeAttempts() {
 
             const title = card.querySelector('.arcade-attempts-title');
             const attempts = card.querySelectorAll('.arcade-attempt');
+            const panel = card.querySelector('.arcade-attempts-panel');
 
-            if (!title) return;
+            if (!title || !panel) return;
 
             title.textContent =
                 `${gameData.attempts_left} ATTEMPTS LEFT`;
@@ -1593,7 +1599,83 @@ async function loadArcadeAttempts() {
                     ? 'none'
                     : 'grayscale(1)';
             });
+
+            let countdown = card.querySelector(
+                '.arcade-attempts-countdown'
+            );
+
+            if (!countdown) {
+                countdown = document.createElement('div');
+                countdown.className = 'arcade-attempts-countdown';
+
+                countdown.style.marginTop = '12px';
+                countdown.style.textAlign = 'center';
+                countdown.style.color = '#8ffaff';
+                countdown.style.fontSize = '11px';
+                countdown.style.fontWeight = '900';
+                countdown.style.letterSpacing = '1px';
+                countdown.style.textShadow = '0 0 9px #00eaff';
+
+                panel.appendChild(countdown);
+            }
+
+            if (
+                gameData.attempts_left === 0 &&
+                gameData.reset_at > 0
+            ) {
+                countdown.style.display = 'block';
+                countdown.dataset.resetAt = gameData.reset_at;
+            } else {
+                countdown.style.display = 'none';
+                countdown.textContent = '';
+                countdown.dataset.resetAt = '0';
+            }
         });
+
+        if (loadArcadeAttempts.timer) {
+            clearInterval(loadArcadeAttempts.timer);
+        }
+
+        loadArcadeAttempts.timer = setInterval(() => {
+
+            const countdowns = document.querySelectorAll(
+                '.arcade-attempts-countdown'
+            );
+
+            let shouldRefresh = false;
+
+            countdowns.forEach(countdown => {
+                const resetAt = Number(countdown.dataset.resetAt);
+
+                if (!resetAt) return;
+
+                const remaining = Math.max(
+                    0,
+                    resetAt - Math.floor(Date.now() / 1000)
+                );
+
+                if (remaining <= 0) {
+                    shouldRefresh = true;
+                    return;
+                }
+
+                const hours = Math.floor(remaining / 3600);
+                const minutes = Math.floor((remaining % 3600) / 60);
+                const seconds = remaining % 60;
+
+                countdown.textContent =
+                    `⏳ RESET IN ${String(hours).padStart(2, '0')}:` +
+                    `${String(minutes).padStart(2, '0')}:` +
+                    `${String(seconds).padStart(2, '0')}`;
+            });
+
+            if (shouldRefresh) {
+                clearInterval(loadArcadeAttempts.timer);
+                loadArcadeAttempts.timer = null;
+                loadArcadeAttempts();
+            }
+
+        }, 1000);
 
     } catch (error) {
         console.error("Failed to load arcade attempts:", error);
@@ -2180,11 +2262,15 @@ function createCosmicAlien() {
 
     const alien = new THREE.Group();
 
+    // جسم أخضر زمردي معتم
     const greenMaterial = new THREE.MeshStandardMaterial({
-        color: 0x19ffc0,
-        emissive: 0x00cc88,
-        emissiveIntensity: 1.8,
-        roughness: 0.28
+        color: 0x20e85b,
+        emissive: 0x087a24,
+        emissiveIntensity: 0.55,
+        roughness: 0.38,
+        metalness: 0.05,
+        transparent: false,
+        opacity: 1
     });
 
     const darkEyeMaterial = new THREE.MeshStandardMaterial({
@@ -2200,7 +2286,11 @@ function createCosmicAlien() {
         color: 0x75ffe5
     });
 
-    // الجسم الطويل المستدير
+    const whiteMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff
+    });
+
+    // الجسم
     const body = new THREE.Mesh(
         new THREE.SphereGeometry(0.72, 32, 32),
         greenMaterial
@@ -2210,28 +2300,13 @@ function createCosmicAlien() {
     body.position.y = 0;
     alien.add(body);
 
-    // العينان السوداوان الكبيرتان
+    // العينان
     for (let side of [-1, 1]) {
 
         const eye = new THREE.Mesh(
             new THREE.SphereGeometry(0.19, 32, 32),
             darkEyeMaterial
         );
-
-        const eyeShine = new THREE.Mesh(
-            new THREE.SphereGeometry(0.045, 16, 16),
-            new THREE.MeshBasicMaterial({
-                color: 0xffffff
-            })
-        );
-
-        eyeShine.position.set(
-            side * 0.29 - 0.035,
-            0.49,
-            0.58
-        );
-
-        alien.add(eyeShine);       
 
         eye.scale.set(1.35, 1.05, 0.4);
         eye.position.set(
@@ -2242,7 +2317,20 @@ function createCosmicAlien() {
 
         alien.add(eye);
 
-        // الخدود الوردية
+        const eyeShine = new THREE.Mesh(
+            new THREE.SphereGeometry(0.045, 16, 16),
+            whiteMaterial
+        );
+
+        eyeShine.position.set(
+            side * 0.29 - 0.035,
+            0.49,
+            0.58
+        );
+
+        alien.add(eyeShine);
+
+        // الخدود
         const cheek = new THREE.Mesh(
             new THREE.SphereGeometry(0.065, 20, 20),
             pinkMaterial
@@ -2256,7 +2344,7 @@ function createCosmicAlien() {
 
         alien.add(cheek);
 
-        // الأذنان الصغيرتان
+        // الأذنان
         const ear = new THREE.Mesh(
             new THREE.SphereGeometry(0.16, 24, 24),
             greenMaterial
@@ -2353,11 +2441,12 @@ function createCosmicAlien() {
         );
 
         alien.add(antennaTip);
+
         antennaTip.userData.isAntennaTip = true;
         antennaTip.userData.baseX = side * 0.18;
     }
 
-    // الفم الصغير
+    // الفم
     const mouth = new THREE.Mesh(
         new THREE.SphereGeometry(0.035, 16, 16),
         pinkMaterial
@@ -2367,10 +2456,10 @@ function createCosmicAlien() {
     mouth.position.set(0, 0.22, 0.525);
     alien.add(mouth);
 
-    // وهج نيون خفيف حول الجسم
+    // إضاءة خضراء حول الفضائي
     const glow = new THREE.PointLight(
-        0x00ffbb,
-        1.2,
+        0x20ff65,
+        1.5,
         4
     );
 
@@ -2464,7 +2553,23 @@ function createCosmicAlienShot(alien) {
         alien.position.z + 0.8
     );
 
+    // تحديد اتجاه الطلقة
+    const aimedShot = Math.random() < 0.6;
+
+    let horizontalSpeed = 0;
+
+    if (aimedShot && cosmicShip) {
+
+        horizontalSpeed = THREE.MathUtils.clamp(
+            (cosmicShip.position.x - shot.position.x) * 0.9,
+            -10,
+            10
+        );
+    }
+
     shot.userData.type = 'alien-shot';
+    shot.userData.velocityX = horizontalSpeed;
+    shot.userData.velocityZ = 35 + (30 - cosmicTime) * 0.5;
 
     cosmicScene.add(shot);
     cosmicAlienShots.push(shot);
@@ -2636,30 +2741,85 @@ function startCosmicEngineSound() {
 
     if (!cosmicSoundEnabled) return;
 
+    if (cosmicAmbientTimer) return;
+
     const AudioContextClass =
         window.AudioContext || window.webkitAudioContext;
 
     if (!AudioContextClass) return;
 
-    if (cosmicEngineOscillator) return;
+    if (!cosmicAmbientAudioContext) {
+        cosmicAmbientAudioContext = new AudioContextClass();
+    }
 
-    const audioContext = new AudioContextClass();
+    cosmicAmbientAudioContext.resume();
 
-    cosmicEngineOscillator = audioContext.createOscillator();
-    cosmicEngineGain = audioContext.createGain();
+    const melody = [
+        659, 784, 880, 784,
+        659, 523, 587, 659
+    ];
 
-    cosmicEngineOscillator.type = 'sawtooth';
-    cosmicEngineOscillator.frequency.value = 55;
+    function playAmbientNote() {
 
-    cosmicEngineGain.gain.value = 0.025;
+        if (
+            !cosmicAmbientAudioContext ||
+            !cosmicSoundEnabled
+        ) return;
 
-    cosmicEngineOscillator.connect(cosmicEngineGain);
-    cosmicEngineGain.connect(audioContext.destination);
+        const ctx = cosmicAmbientAudioContext;
+        const now = ctx.currentTime;
 
-    cosmicEngineOscillator.start();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscillator.type = 'sine';
+
+        oscillator.frequency.value =
+            melody[cosmicAmbientNoteIndex];
+
+        gain.gain.setValueAtTime(0.0001, now);
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.018,
+            now + 0.06
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            now + 0.55
+        );
+
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+
+        oscillator.start(now);
+        oscillator.stop(now + 0.6);
+
+        cosmicAmbientNoteIndex =
+            (cosmicAmbientNoteIndex + 1) % melody.length;
+    }
+
+    playAmbientNote();
+
+    cosmicAmbientTimer = setInterval(
+        playAmbientNote,
+        950
+    );
 }
 
 function stopCosmicEngineSound() {
+
+    if (cosmicAmbientTimer) {
+        clearInterval(cosmicAmbientTimer);
+        cosmicAmbientTimer = null;
+    }
+
+    if (cosmicAmbientAudioContext) {
+        cosmicAmbientAudioContext.close();
+        cosmicAmbientAudioContext = null;
+    }
+
+    cosmicAmbientNoteIndex = 0;
 
     if (cosmicEngineOscillator) {
         cosmicEngineOscillator.stop();
@@ -2708,6 +2868,8 @@ let cosmicSpawnTimer = 0;
 let cosmicCrystalTimer = 0;
 let cosmicAlienSpawnTimer = 0;
 let cosmicAlienAttackTimer = 0;
+let cosmicAlienBurstTimer = 0;
+let cosmicAlienBurstShotsRemaining = 0;
 
 function spawnCosmicObjects(delta) {
 
@@ -2814,6 +2976,11 @@ if (cosmicPhase === 2) {
 
         alien.rotation.z =
             Math.sin(floatTime * 0.8) * 0.08;
+
+        // فحص اصطدام جسم الفضائي بالمركبة
+        if (checkCosmicCollision(alien, 1.1)) {
+            loseCosmicHeart();
+        }
         alien.children.forEach(part => {
 
             if (part.userData.isAntennaTip) {
@@ -2831,25 +2998,51 @@ if (cosmicPhase === 2) {
         }
     }
 
-    // إطلاق الفضائيين لطلقات الطاقة
+    // إطلاق رشقات فضائية متتابعة
     if (cosmicPhase === 2) {
 
-        cosmicAlienAttackTimer += delta;
+        // إذا كانت هناك رشقة قيد التنفيذ
+        if (cosmicAlienBurstShotsRemaining > 0) {
 
-        if (cosmicAlienAttackTimer >= 1.8) {
+            cosmicAlienBurstTimer += delta;
 
-            if (cosmicAliens.length > 0) {
+            // تزداد سرعة الرشقات كلما اقتربت نهاية المرحلة
+            const shotInterval = Math.max(
+                0.07,
+                0.13 - (30 - cosmicTime) * 0.002
+            );
 
-                const randomIndex = Math.floor(
-                    Math.random() * cosmicAliens.length
-                );
+            if (cosmicAlienBurstTimer >= shotInterval) {
 
-                createCosmicAlienShot(
-                    cosmicAliens[randomIndex]
-                );
+                if (cosmicAliens.length > 0) {
+
+                    const randomIndex = Math.floor(
+                        Math.random() * cosmicAliens.length
+                    );
+
+                    createCosmicAlienShot(
+                        cosmicAliens[randomIndex]
+                    );
+                }
+
+                cosmicAlienBurstShotsRemaining--;
+                cosmicAlienBurstTimer = 0;
             }
 
-            cosmicAlienAttackTimer = 0;
+        } else {
+
+            // استراحة قصيرة بين الرشقات
+            cosmicAlienAttackTimer += delta;
+
+            if (
+                cosmicAlienAttackTimer >= 1.4 &&
+                cosmicAliens.length > 0
+            ) {
+
+                cosmicAlienBurstShotsRemaining = 7;
+                cosmicAlienBurstTimer = 0;
+                cosmicAlienAttackTimer = 0;
+            }
         }
     }
 
@@ -2906,7 +3099,8 @@ if (cosmicPhase === 2) {
 
         const shot = cosmicAlienShots[i];
 
-        shot.position.z += 35 * delta;
+        shot.position.z += (shot.userData.velocityZ || 35) * delta;
+        shot.position.x += (shot.userData.velocityX || 0) * delta;
 
         if (checkCosmicCollision(shot, 0.9)) {
 
@@ -3160,6 +3354,8 @@ if (fireButton) {
     cosmicPhase = 2;
     cosmicAlienSpawnTimer = 0;
     cosmicAlienAttackTimer = 0;
+    cosmicAlienBurstTimer = 0;
+    cosmicAlienBurstShotsRemaining = 0;
     cosmicTime = 30;
     cosmicRunning = true;
     cosmicPaused = false;
@@ -3373,7 +3569,7 @@ async function startCosmicRound() {
     // إعادة ضبط بيانات الجولة
     cosmicScore = 0;
     cosmicHearts = 3;
-    cosmicTime = 90;
+    cosmicTime = 60;
     cosmicPhase = 1;
     cosmicGameSpeed = 18;
 
@@ -3382,6 +3578,10 @@ async function startCosmicRound() {
 
     cosmicSpawnTimer = 0;
     cosmicCrystalTimer = 0;
+    cosmicAlienSpawnTimer = 0;
+    cosmicAlienAttackTimer = 0;
+    cosmicAlienBurstTimer = 0;
+    cosmicAlienBurstShotsRemaining = 0;    
     cosmicLastTime = 0;
 
     cosmicPaused = false;

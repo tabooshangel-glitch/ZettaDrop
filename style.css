@@ -179,23 +179,185 @@ h2 {
 .status-badge.success { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
 .status-badge.rejected { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
 .nav-bar {
-    position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
-    width: calc(100% - 30px); max-width: 390px; background: rgba(15, 7, 31, 0.9);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px;
-    display: flex; justify-content: space-around; padding: 10px 0; border: 1px solid rgba(0, 242, 254, 0.15); box-shadow: 0 8px 30px rgba(0,0,0,0.8); z-index: 100;
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 30px);
+    max-width: 390px;
+    background: rgba(15, 7, 31, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0;
+    padding: 10px 5px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 242, 254, 0.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+    z-index: 100;
+}
+
+.nav-bar .nav-item:not(.arcade-nav-item) {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 2px;
+    text-align: center;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.nav-bar .arcade-nav-item {
+    flex: 0 0 78px;
 }
 .nav-item { font-size: 12px; font-weight: 800; color: #878195; cursor: pointer; transition: all 0.2s ease; padding: 6px 14px; border-radius: 10px; }
 .nav-item.active { color: #00f2fe; background: rgba(0, 242, 254, 0.1); text-shadow: 0 0 6px rgba(0,242,254,0.5); }
+
+/* ✨ ARCADE NEON GLITTER ORB */
+
+.arcade-nav-item {
+    position: relative;
+    z-index: 5;
+    width: 78px;
+    height: 78px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    margin-top: -27px;
+    border-radius: 50%;
+    color: #e8e9ff;
+    font-size: 10px;
+    font-weight: 900;
+    white-space: nowrap;
+    background:
+        radial-gradient(circle at 35% 25%,
+            rgba(139, 92, 255, 0.45),
+            rgba(20, 12, 48, 0.98) 65%);
+    border: 2px solid #8b5cff;
+    box-shadow:
+        0 0 8px #8b5cff,
+        0 0 18px rgba(139, 92, 255, 0.8),
+        0 0 28px rgba(54, 232, 255, 0.45),
+        inset 0 0 14px rgba(54, 232, 255, 0.25);
+    text-shadow:
+        0 0 6px #36e8ff,
+        0 0 12px #e8e9ff;
+    overflow: visible;
+}
+
+.arcade-nav-item::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background:
+        conic-gradient(
+            from 0deg,
+            #8b5cff,
+            #36e8ff,
+            #e8e9ff,
+            #8b5cff
+        ) border-box;
+    mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);    
+    -webkit-mask:
+        linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: arcadeOrbSpin 5s linear infinite;
+    pointer-events: none;
+}
+
+.arcade-nav-item::after {
+    content: "✦  ·  ✧";
+    position: absolute;
+    inset: -13px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    color: #e8e9ff;
+    font-size: 13px;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 12px #36e8ff,
+        0 0 16px #8b5cff;
+    animation: arcadeGlitter 1.8s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+.arcade-nav-item.active {
+    color: #ffffff;
+    background:
+        radial-gradient(circle at 35% 25%,
+            rgba(139, 92, 255, 0.5),
+            rgba(20, 12, 48, 0.98) 65%);
+    border-color: #36e8ff;
+    box-shadow:
+        0 0 10px #8b5cff,
+        0 0 22px #36e8ff,
+        0 0 35px rgba(139, 92, 255, 0.65),
+        inset 0 0 16px rgba(54, 232, 255, 0.3);
+}
+
+@keyframes arcadeOrbSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes arcadeGlitter {
+    from {
+        opacity: 0.45;
+        transform: scale(0.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+}
 
 .action-btn { width: 100%; border: none; border-radius: 12px; padding: 14px; color: white; font-size: 14px; font-weight: 800; cursor: pointer; }
 .ref-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #07020d; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3); }
 .withdraw-btn { background: linear-gradient(135deg, #7928ca, #b388ff); box-shadow: 0 4px 15px rgba(121, 40, 202, 0.4); }
 .disabled-btn { background: rgba(255, 255, 255, 0.02) !important; color: #555555 !important; border: 1px solid #333 !important; cursor: not-allowed !important; pointer-events: none; }
 
+/* 🌐 PROFILE LANGUAGE BUTTON */
+
+.profile-language-row {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
 .lang-toggle-btn {
-    position: fixed; top: 15px; right: 15px; background: rgba(22, 11, 41, 0.7);
-    border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; padding: 6px 12px;
-    border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; z-index: 1000; backdrop-filter: blur(5px);
+    position: static;
+    background: rgba(139, 92, 255, 0.16);
+    border: 1px solid rgba(139, 92, 255, 0.75);
+    color: #e8e9ff;
+    padding: 8px 13px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+        0 0 8px rgba(139, 92, 255, 0.45),
+        0 0 14px rgba(54, 232, 255, 0.18);
+    text-shadow: 0 0 7px #36e8ff;
 }
 
 @keyframes spaceMoveSlow { from { transform: translateY(0); } to { transform: translateY(-50%); } }
@@ -407,6 +569,44 @@ h2 {
     letter-spacing: 1.2px;
     margin-bottom: 11px;
     text-shadow: 0 0 9px rgba(255, 45, 190, 0.8);
+}
+
+/* ⏳ CYBERPUNK 24H COUNTDOWN */
+
+.arcade-attempts-countdown {
+    margin-top: 12px !important;
+    padding: 9px 4px 3px;
+    border-top: 1px solid rgba(0, 225, 255, 0.35);
+    border-radius: 0 0 8px 8px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 35, 190, 0.08),
+        rgba(0, 225, 255, 0.10),
+        rgba(255, 35, 190, 0.08)
+    );
+    color: #8ffaff !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: 1.2px;
+    text-align: center !important;
+    text-shadow:
+        0 0 5px #00eaff,
+        0 0 12px rgba(0, 225, 255, 0.65);
+    animation: arcadeCountdownGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes arcadeCountdownGlow {
+    from {
+        text-shadow: 0 0 5px #00eaff;
+        border-top-color: rgba(0, 225, 255, 0.3);
+    }
+
+    to {
+        text-shadow:
+            0 0 8px #00eaff,
+            0 0 16px #ff35c8;
+        border-top-color: rgba(255, 45, 190, 0.65);
+    }
 }
 
 .arcade-attempts-list {
