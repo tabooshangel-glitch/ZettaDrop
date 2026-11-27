@@ -304,11 +304,19 @@
                     </div>
                 </div>
 
-                <div class="space-card arcade-game-card">
-                    <div class="arcade-game-icon">☄️</div>
-                    <div class="arcade-game-name">ASTEROID RUSH</div>
-                    <div class="arcade-game-desc">Navigate the asteroid field.</div>
-                    <div class="arcade-game-status">COMING SOON</div>
+                <div class="space-card arcade-game-card potion-lab-card"
+                     onclick="openArcadeGame('asteroid-rush')">
+
+                    <div class="arcade-game-icon">🧪</div>
+
+                    <div class="arcade-game-name">POTION LAB</div>
+
+                    <div class="arcade-game-desc">
+                        Create magical potions!
+                    </div>
+
+                    <div class="arcade-game-status">PLAY NOW</div>
+
                     <div class="arcade-attempts-panel">
                         <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
 
@@ -317,7 +325,8 @@
                             <div class="arcade-attempt">ϟ</div>
                             <div class="arcade-attempt">ϟ</div>
                         </div>
-                    </div>                    
+                    </div>
+
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -494,6 +503,109 @@
 </button>
     </div>
 </div>
+
+        </div>
+
+        <!-- 🧪 POTION LAB GAME SCREEN -->
+        <div id="potion-lab-page" class="page">
+
+            <div class="potion-topbar">
+                <button class="potion-control-btn"
+                        onclick="togglePotionSound()"
+                        id="potion-sound-btn">🔊</button>
+
+                <div class="potion-game-title">POTION LAB</div>
+
+                <button class="potion-control-btn"
+                        onclick="pausePotionGame()"
+                        id="potion-pause-btn">⏸️</button>
+            </div>
+
+            <div class="potion-hud">
+                <div class="potion-hud-box">
+                    <small>SCORE</small>
+                    <strong id="potion-score">0</strong>
+                </div>
+
+                <div class="potion-hud-box">
+                    <small>TIME</small>
+                    <strong id="potion-timer">120</strong>
+                </div>
+
+                <div class="potion-hud-box">
+                    <small>RECIPES</small>
+                    <strong id="potion-recipes">0</strong>
+                </div>
+            </div>
+
+            <div id="potion-game-container">
+                <canvas id="potion-game-canvas"></canvas>
+
+                <div id="potion-loading">
+                    <div>🧪</div>
+                    <p>PREPARING YOUR MAGIC LAB...</p>
+                </div>
+            </div>
+
+            <div class="potion-recipe-panel">
+                <div class="potion-recipe-title">
+                    ✨ CREATE THE POTION
+                </div>
+
+                <div id="potion-recipe-items"></div>
+            </div>
+
+            <div class="potion-ingredients-panel">
+                <div class="potion-ingredients-title">
+                    🌟 CHOOSE INGREDIENTS
+                </div>
+
+                <div id="potion-ingredients"></div>
+            </div>
+
+            <div id="potion-feedback"></div>
+
+            <div id="potion-pause-overlay"
+                 class="potion-overlay"
+                 style="display:none;">
+
+                <div class="potion-popup">
+                    <div class="potion-popup-icon">⏸️</div>
+                    <h2>GAME PAUSED</h2>
+
+                    <button class="action-btn ref-btn"
+                            onclick="resumePotionGame()">▶ RESUME</button>
+
+                    <button class="action-btn ref-btn"
+                            onclick="togglePotionSound()">🔊 SOUND</button>
+
+                    <button class="action-btn ref-btn"
+                            onclick="exitPotionGame()">↩ EXIT GAME</button>
+                </div>
+            </div>
+
+            <div id="potion-result-overlay"
+                 class="potion-overlay"
+                 style="display:none;">
+
+                <div class="potion-popup">
+                    <div class="potion-popup-icon">🏆</div>
+                    <h2 id="potion-result-title">LAB COMPLETE!</h2>
+
+                    <p>Your Score</p>
+                    <strong id="potion-final-score">0</strong>
+
+                    <p id="potion-result-message">
+                        Amazing potion making!
+                    </p>
+
+                    <button class="action-btn ref-btn"
+                            onclick="restartPotionGame()">↻ PLAY AGAIN</button>
+
+                    <button class="action-btn ref-btn"
+                            onclick="exitPotionGame()">✨ BACK TO ARCADE</button>
+                </div>
+            </div>
 
         </div>
 
@@ -3449,7 +3561,10 @@ let cosmicControlsInitialized = false;
 // فتح شاشة اللعبة
 function openArcadeGame(gameId) {
 
-    if (gameId !== 'cosmic-tunnel') return;
+    if (
+        gameId !== 'cosmic-tunnel' &&
+        gameId !== 'asteroid-rush'
+    ) return;
 
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -3459,18 +3574,27 @@ function openArcadeGame(gameId) {
         item.classList.remove('active');
     });
 
-    document.getElementById('cosmic-tunnel-page')
-        .classList.add('active');
-
     const arcadeTab = document.getElementById('tab-arcade');
 
     if (arcadeTab) {
         arcadeTab.classList.add('active');
     }
 
-    startCosmicRound();
-}
+    if (gameId === 'cosmic-tunnel') {
 
+        document.getElementById('cosmic-tunnel-page')
+            .classList.add('active');
+
+        startCosmicRound();
+
+    } else if (gameId === 'asteroid-rush') {
+
+        document.getElementById('potion-lab-page')
+            .classList.add('active');
+
+        startPotionRound();
+    }
+}
 
 // بدء جولة جديدة
 async function startCosmicRound() {
@@ -3756,6 +3880,1801 @@ function exitCosmicGame() {
 
     loadArcadeAttempts();
 }
+
+
+// =============================================
+// 🧪 POTION LAB - GAME ENGINE
+// =============================================
+
+let potionScene = null;
+let potionCamera = null;
+let potionRenderer = null;
+let potionAnimationId = null;
+
+let potionRunning = false;
+let potionPaused = false;
+let potionAttemptPending = false;
+let potionSessionToken = 0;
+
+let potionScore = 0;
+let potionTime = 120;
+let potionRecipesCompleted = 0;
+let potionLastFrame = 0;
+let potionSoundEnabled = true;
+let potionAudioContext = null;
+
+let potionObjects = [];
+let potionBubbles = [];
+let potionSparkles = [];
+let potionMagicParticles = [];
+
+let potionSelected = [];
+let potionCurrentRecipe = [];
+let potionCurrentOptions = [];
+let potionCorrectCount = 0;
+let potionRecipeLocked = false;
+
+const potionIngredients = [
+    { id: 'moonflower', name: 'Moonflower', icon: '🌸' },
+    { id: 'stardust', name: 'Stardust', icon: '✨' },
+    { id: 'crystal', name: 'Crystal', icon: '💎' },
+    { id: 'dragon', name: 'Dragon Flame', icon: '🔥' },
+    { id: 'moonwater', name: 'Moonwater', icon: '💧' },
+    { id: 'mushroom', name: 'Magic Mushroom', icon: '🍄' },
+    { id: 'feather', name: 'Fairy Feather', icon: '🪶' },
+    { id: 'berry', name: 'Star Berry', icon: '🫐' }
+];
+
+
+// ---------------------------------------------
+// 3D OBJECT HELPERS
+// ---------------------------------------------
+
+function potionMaterial(color, roughness = 0.45, metalness = 0.05) {
+    return new THREE.MeshStandardMaterial({
+        color: color,
+        roughness: roughness,
+        metalness: metalness
+    });
+}
+
+function potionAddMesh(geometry, material, x, y, z, group = null) {
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.position.set(x, y, z);
+
+    if (group) {
+        group.add(mesh);
+    } else {
+        potionScene.add(mesh);
+    }
+
+    potionObjects.push(mesh);
+
+    return mesh;
+}
+
+function potionSphere(group, x, y, z, sx, sy, sz, color) {
+    const mesh = potionAddMesh(
+        new THREE.SphereGeometry(1, 20, 16),
+        potionMaterial(color),
+        x, y, z, group
+    );
+
+    mesh.scale.set(sx, sy, sz);
+
+    return mesh;
+}
+
+function potionCylinder(group, x, y, z, rt, rb, height, color) {
+    return potionAddMesh(
+        new THREE.CylinderGeometry(rt, rb, height, 24),
+        potionMaterial(color, 0.3, 0.3),
+        x, y, z, group
+    );
+}
+
+
+// ---------------------------------------------
+// CREATE THE MAGICAL LABORATORY
+// ---------------------------------------------
+
+function createPotionGlow(x, y, z, color, intensity, distance) {
+
+    const light = new THREE.PointLight(
+        color,
+        intensity,
+        distance
+    );
+
+    light.position.set(x, y, z);
+
+    potionScene.add(light);
+
+    return light;
+}
+
+
+function createPotionMagicLights() {
+
+    // Witch pink-purple aura
+    createPotionGlow(
+        -1.65, 2.1, 1.8,
+        0xd66aff,
+        1.8,
+        4
+    );
+
+    // Companion turquoise aura
+    createPotionGlow(
+        -0.55, 1.5, 2,
+        0x55eaff,
+        1.5,
+        3
+    );
+
+    // Cauldron magical glow
+    createPotionGlow(
+        1.6, 2.2, 0.8,
+        0x42f5d7,
+        2.2,
+        4
+    );
+
+    // Warm golden laboratory light
+    createPotionGlow(
+        0, 3.5, -1,
+        0xffd477,
+        1.1,
+        6
+    );
+}
+
+
+function createPotionParticles() {
+
+    const colors = [
+        0xff8de8,
+        0x65efff,
+        0xd9a0ff,
+        0xffdf83
+    ];
+
+    for (let i = 0; i < 22; i++) {
+
+        const angle = Math.random() * Math.PI * 2;
+
+        const radius = 0.65 + Math.random() * 0.8;
+
+        const particle = potionAddMesh(
+            new THREE.SphereGeometry(
+                0.025 + Math.random() * 0.025,
+                8,
+                8
+            ),
+
+            new THREE.MeshBasicMaterial({
+                color: colors[
+                    Math.floor(Math.random() * colors.length)
+                ],
+
+                transparent: true,
+                opacity: 0.9
+            }),
+
+            -1.65 + Math.cos(angle) * radius,
+            1.8 + Math.random() * 2,
+            1.1 + Math.sin(angle) * 0.45
+        );
+
+        potionMagicParticles.push({
+            mesh: particle,
+            angle: angle,
+            radius: radius,
+            speed: 0.35 + Math.random() * 0.7,
+            baseY: particle.position.y,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+}
+
+
+function createPotionScene() {
+
+    const container = document.getElementById(
+        'potion-game-container'
+    );
+
+    const canvas = document.getElementById(
+        'potion-game-canvas'
+    );
+
+    if (!container || !canvas || !window.THREE) {
+        return false;
+    }
+
+    potionScene = new THREE.Scene();
+
+    potionScene.background = new THREE.Color(0x100923);
+
+    potionCamera = new THREE.PerspectiveCamera(
+        42,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        100
+    );
+
+    potionCamera.position.set(0, 3.1, 9.5);
+    potionCamera.lookAt(0, 1.8, 0);
+
+    potionRenderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: false,
+        powerPreference: 'low-power'
+    });
+
+    potionRenderer.setPixelRatio(
+        Math.min(window.devicePixelRatio || 1, 1.5)
+    );
+
+    potionRenderer.setSize(
+        container.clientWidth,
+        container.clientHeight,
+        false
+    );
+
+    potionRenderer.outputEncoding = THREE.sRGBEncoding;
+
+    // Lighting
+    const ambient = new THREE.AmbientLight(
+        0xc9b7ff,
+        1.35
+    );
+
+    potionScene.add(ambient);
+
+    const pinkLight = new THREE.PointLight(
+        0xd66aff,
+        2.2,
+        12
+    );
+
+    pinkLight.position.set(-3, 4, 3);
+    potionScene.add(pinkLight);
+
+    const blueLight = new THREE.PointLight(
+        0x55eaff,
+        2,
+        12
+    );
+
+    blueLight.position.set(3, 3, 2);
+    potionScene.add(blueLight);
+
+    // Laboratory floor
+    potionAddMesh(
+        new THREE.BoxGeometry(12, 0.25, 5),
+        potionMaterial(0x21133e),
+        0, -0.15, 0
+    );
+
+    // Magical window
+    potionAddMesh(
+        new THREE.BoxGeometry(2.4, 3.1, 0.15),
+        potionMaterial(0x513c83, 0.25),
+        0, 3.4, -2.8
+    );
+
+    potionAddMesh(
+        new THREE.BoxGeometry(2.05, 2.75, 0.08),
+        new THREE.MeshBasicMaterial({
+            color: 0x4e8bd0
+        }),
+        0, 3.4, -2.68
+    );
+
+    // Window cross
+    potionAddMesh(
+        new THREE.BoxGeometry(0.07, 2.7, 0.08),
+        potionMaterial(0xd9b5ff),
+        0, 3.4, -2.58
+    );
+
+    potionAddMesh(
+        new THREE.BoxGeometry(2, 0.07, 0.08),
+        potionMaterial(0xd9b5ff),
+        0, 3.4, -2.58
+    );
+
+    // Shelves
+    for (let i = 0; i < 2; i++) {
+
+        const shelfY = 2.4 + i * 1.25;
+
+        potionAddMesh(
+            new THREE.BoxGeometry(2.4, 0.12, 0.55),
+            potionMaterial(0x714b9c),
+            -3, shelfY, -1.1
+        );
+
+        potionAddMesh(
+            new THREE.BoxGeometry(2.4, 0.12, 0.55),
+            potionMaterial(0x714b9c),
+            3, shelfY, -1.1
+        );
+    }
+
+    // Decorative potion bottles
+    const bottleColors = [
+        0xff73ce,
+        0x53eaff,
+        0xa77aff,
+        0xffd56a,
+        0x75ffc5,
+        0x8c9bff
+    ];
+
+    for (let i = 0; i < 6; i++) {
+
+        const side = i < 3 ? -3 : 3;
+        const index = i % 3;
+
+        const x = side + (index - 1) * 0.65;
+        const y = 2.72 + (i < 3 ? 0 : 1.25);
+
+        const bottle = potionSphere(
+            null,
+            x, y, -0.72,
+            0.18, 0.25, 0.16,
+            bottleColors[i]
+        );
+
+        potionCylinder(
+            null,
+            x, y + 0.27, -0.72,
+            0.07, 0.09, 0.16,
+            0xf4d9ff
+        );
+    }
+
+    // Workbench
+    potionAddMesh(
+        new THREE.BoxGeometry(7, 0.25, 1.2),
+        potionMaterial(0x58366e),
+        0, 0.8, 0
+    );
+
+    potionAddMesh(
+        new THREE.BoxGeometry(0.22, 1.1, 0.9),
+        potionMaterial(0x40244e),
+        -2.8, 0.2, 0
+    );
+
+    potionAddMesh(
+        new THREE.BoxGeometry(0.22, 1.1, 0.9),
+        potionMaterial(0x40244e),
+        2.8, 0.2, 0
+    );
+
+    // Cauldron
+    const cauldron = new THREE.Group();
+
+    potionScene.add(cauldron);
+
+    potionCylinder(
+        cauldron,
+        1.6, 1.45, 0,
+        0.72, 0.82, 0.85,
+        0x38264e
+    );
+
+    potionCylinder(
+        cauldron,
+        1.6, 1.9, 0,
+        0.76, 0.76, 0.12,
+        0xb78cda
+    );
+
+    const potionLiquid = potionAddMesh(
+        new THREE.CircleGeometry(0.64, 32),
+        new THREE.MeshBasicMaterial({
+            color: 0x48f4dc,
+            side: THREE.DoubleSide
+        }),
+        1.6, 1.97, 0
+    );
+
+    potionLiquid.rotation.x = -Math.PI / 2;
+
+    // Cauldron legs
+    for (let i = 0; i < 3; i++) {
+
+        const angle = i * Math.PI * 2 / 3;
+
+        potionCylinder(
+            cauldron,
+            1.6 + Math.cos(angle) * 0.48,
+            0.95,
+            Math.sin(angle) * 0.48,
+            0.08, 0.1, 0.45,
+            0x9b75bb
+        );
+    }
+
+    // Cauldron bubbles
+    for (let i = 0; i < 9; i++) {
+
+        const bubble = potionAddMesh(
+            new THREE.SphereGeometry(0.055, 10, 8),
+            new THREE.MeshBasicMaterial({
+                color: i % 2 ? 0x7affed : 0xffa5ed
+            }),
+            1.6 + (Math.random() - 0.5) * 0.8,
+            2.05 + Math.random() * 0.35,
+            (Math.random() - 0.5) * 0.7
+        );
+
+        potionBubbles.push({
+            mesh: bubble,
+            baseY: bubble.position.y,
+            speed: 0.5 + Math.random()
+        });
+    }
+
+    // Crystals around the laboratory
+    for (let i = 0; i < 7; i++) {
+
+        const x = -3.3 + i * 1.05;
+
+        const crystal = potionAddMesh(
+            new THREE.OctahedronGeometry(0.18),
+            new THREE.MeshStandardMaterial({
+                color: i % 2 ? 0x62edff : 0xe17bff,
+                emissive: i % 2 ? 0x145b78 : 0x542070,
+                emissiveIntensity: 0.7
+            }),
+            x, 0.98, -0.5
+        );
+
+        potionSparkles.push({
+            mesh: crystal,
+            baseY: crystal.position.y,
+            phase: Math.random() * 6
+        });
+    }
+
+    // The young alchemist
+    createPotionWitch();
+
+    // Her magical companion
+    createPotionCompanion();
+
+    // Magical laboratory lighting
+    createPotionMagicLights();
+
+    createPotionParticles();
+
+    return true;
+}
+
+
+// ---------------------------------------------
+// THE ALCHEMIST CHARACTER
+// ---------------------------------------------
+
+
+function createPotionWitch() {
+
+    const witch = new THREE.Group();
+
+    potionScene.add(witch);
+
+    witch.position.set(-1.65, 0.85, 0.75);
+
+    // =====================================
+    // LONG STRAIGHT MAGICAL HAIR - BACK
+    // =====================================
+
+    // Main long hair flowing down the back
+    potionSphere(
+        witch, 0, 1.25, -0.17,
+        0.49, 1.22, 0.25,
+        0x281442
+    );
+
+    // Long smooth side locks
+    for (let side of [-1, 1]) {
+
+        potionSphere(
+            witch,
+            side * 0.39,
+            1.12,
+            -0.005,
+            0.16, 1.18, 0.17,
+            0x38205f
+        );
+
+        // Violet highlights
+        potionSphere(
+            witch,
+            side * 0.47,
+            1.15,
+            0.105,
+            0.035, 0.95, 0.025,
+            0x8955c9
+        );
+
+        // Pink reflections
+        potionSphere(
+            witch,
+            side * 0.40,
+            0.95,
+            0.145,
+            0.025, 0.72, 0.018,
+            0xd77be9
+        );
+    }
+
+    // =====================================
+    // ELEGANT MAGICAL DRESS
+    // =====================================
+
+    potionAddMesh(
+        new THREE.ConeGeometry(0.68, 1.35, 48),
+        potionMaterial(0x7132b7),
+        0, 0.73, 0,
+        witch
+    );
+
+    potionSphere(
+        witch, 0, 0.82, 0.13,
+        0.47, 0.52, 0.34,
+        0x913fd1
+    );
+
+    // Pink chest decoration
+    potionSphere(
+        witch, 0, 0.92, 0.43,
+        0.25, 0.28, 0.035,
+        0xe9a9ff
+    );
+
+    // Golden waist belt
+    potionCylinder(
+        witch, 0, 0.53, 0,
+        0.34, 0.34, 0.09,
+        0xf4cf72
+    );
+
+    // Magical golden dress ornament
+    potionSphere(
+        witch, 0, 0.88, 0.48,
+        0.09, 0.12, 0.035,
+        0xffdf83
+    );
+
+    // =====================================
+    // NECK AND FACE
+    // =====================================
+
+    potionCylinder(
+        witch, 0, 1.52, 0,
+        0.12, 0.12, 0.22,
+        0xffd7ca
+    );
+
+    potionSphere(
+        witch, 0, 1.98, 0.04,
+        0.40, 0.48, 0.34,
+        0xffd9ce
+    );
+
+    // Soft face blush
+    for (let side of [-1, 1]) {
+
+        potionSphere(
+            witch,
+            side * 0.25,
+            1.86,
+            0.335,
+            0.09, 0.045, 0.025,
+            0xff9ebd
+        );
+    }
+
+    // =====================================
+    // BEAUTIFUL LARGE EYES
+    // =====================================
+
+    for (let side of [-1, 1]) {
+
+        // Eye white
+        potionSphere(
+            witch,
+            side * 0.155,
+            2.02,
+            0.335,
+            0.09, 0.12, 0.045,
+            0xffffff
+        );
+
+        // Violet iris
+        potionSphere(
+            witch,
+            side * 0.155,
+            2.015,
+            0.375,
+            0.058, 0.082, 0.025,
+            0x7544d8
+        );
+
+        // Dark pupil
+        potionSphere(
+            witch,
+            side * 0.155,
+            2.01,
+            0.397,
+            0.031, 0.052, 0.014,
+            0x21143d
+        );
+
+        // Eye sparkle
+        potionSphere(
+            witch,
+            side * 0.175,
+            2.045,
+            0.412,
+            0.018, 0.023, 0.012,
+            0xffffff
+        );
+
+        // Eyebrows
+        const brow = potionSphere(
+            witch,
+            side * 0.16,
+            2.17,
+            0.34,
+            0.09, 0.025, 0.025,
+            0x4b286d
+        );
+
+        brow.rotation.z = side * -0.12;
+    }
+
+    // Small nose
+    potionSphere(
+        witch, 0, 1.91, 0.38,
+        0.035, 0.045, 0.025,
+        0xf0a99f
+    );
+
+    // Smile
+    potionSphere(
+        witch, 0, 1.79, 0.365,
+        0.075, 0.022, 0.018,
+        0xb94c83
+    );
+
+    // =====================================
+    // STRAIGHT FRONT BANGS
+    // =====================================
+
+    potionSphere(
+        witch, 0, 2.31, 0.20,
+        0.39, 0.20, 0.22,
+        0x30204c
+    );
+
+    for (let side of [-1, 1]) {
+
+        potionSphere(
+            witch,
+            side * 0.25,
+            2.23,
+            0.27,
+            0.13, 0.22, 0.12,
+            0x49306f
+        );
+    }
+
+    // =====================================
+    // ELEGANT WITCH HAT
+    // =====================================
+
+    potionCylinder(
+        witch, 0, 2.43, 0,
+        0.58, 0.58, 0.09,
+        0x40205f
+    );
+
+    potionAddMesh(
+        new THREE.ConeGeometry(0.34, 0.78, 40),
+        potionMaterial(0x6337a0),
+        -0.04, 2.83, 0,
+        witch
+    );
+
+    // Golden hat ribbon
+    potionCylinder(
+        witch, -0.04, 2.56, 0,
+        0.31, 0.31, 0.07,
+        0xf5ce75
+    );
+
+    // Hat crystal
+    potionSphere(
+        witch, -0.04, 3.24, 0.02,
+        0.09, 0.11, 0.09,
+        0x65efff
+    );
+
+    // =====================================
+    // ARMS AND SLEEVES
+    // =====================================
+
+    const leftArm = potionSphere(
+        witch, -0.48, 1.18, 0.08,
+        0.15, 0.37, 0.15,
+        0x9b55d3
+    );
+
+    leftArm.rotation.z = 0.42;
+
+    const rightArm = potionSphere(
+        witch, 0.48, 1.18, 0.08,
+        0.15, 0.37, 0.15,
+        0x9b55d3
+    );
+
+    rightArm.rotation.z = -0.42;
+
+    // Hands
+    potionSphere(
+        witch, -0.61, 0.91, 0.12,
+        0.12, 0.13, 0.12,
+        0xffd9ce
+    );
+
+    potionSphere(
+        witch, 0.61, 0.91, 0.12,
+        0.12, 0.13, 0.12,
+        0xffd9ce
+    );
+
+    // Golden shoulder ornaments
+    for (let side of [-1, 1]) {
+
+        potionSphere(
+            witch,
+            side * 0.43,
+            1.42,
+            0.13,
+            0.09, 0.09, 0.07,
+            0xffd978
+        );
+    }
+
+    // Magical necklace
+    potionSphere(
+        witch, 0, 1.54, 0.17,
+        0.07, 0.09, 0.035,
+        0x65efff
+    );
+
+    witch.userData.isWitch = true;
+
+    potionWitch = witch;
+}
+
+let potionWitch = null;
+let potionCompanion = null;
+
+
+// ---------------------------------------------
+// THE CUTE MAGICAL COMPANION
+// ---------------------------------------------
+
+
+function createPotionCompanion() {
+
+    const creature = new THREE.Group();
+
+    potionScene.add(creature);
+
+    creature.position.set(-0.55, 1.05, 1.15);
+
+    // =====================================
+    // SOFT MAGICAL BODY
+    // =====================================
+
+    potionSphere(
+        creature, 0, 0.25, 0,
+        0.39, 0.36, 0.34,
+        0x83efff
+    );
+
+    // Soft belly
+    potionSphere(
+        creature, 0, 0.16, 0.27,
+        0.25, 0.19, 0.09,
+        0xd8fbff
+    );
+
+    // =====================================
+    // CUTE EARS
+    // =====================================
+
+    for (let side of [-1, 1]) {
+
+        const ear = potionSphere(
+            creature,
+            side * 0.27,
+            0.55,
+            -0.01,
+            0.15, 0.25, 0.13,
+            0x9b83ff
+        );
+
+        ear.rotation.z = side * -0.35;
+
+        const innerEar = potionSphere(
+            creature,
+            side * 0.28,
+            0.56,
+            0.105,
+            0.075, 0.15, 0.035,
+            0xffa9e8
+        );
+
+        innerEar.rotation.z = side * -0.35;
+    }
+
+    // =====================================
+    // HUGE SPARKLING EYES
+    // =====================================
+
+    for (let side of [-1, 1]) {
+
+        potionSphere(
+            creature,
+            side * 0.145,
+            0.34,
+            0.29,
+            0.105, 0.13, 0.05,
+            0xffffff
+        );
+
+        potionSphere(
+            creature,
+            side * 0.145,
+            0.34,
+            0.335,
+            0.072, 0.095, 0.025,
+            0x5140a6
+        );
+
+        potionSphere(
+            creature,
+            side * 0.145 - 0.025,
+            0.38,
+            0.36,
+            0.027, 0.035, 0.015,
+            0xffffff
+        );
+
+        // Eyelashes
+        potionSphere(
+            creature,
+            side * 0.22,
+            0.46,
+            0.30,
+            0.035, 0.07, 0.025,
+            0x514078
+        );
+    }
+
+    // Tiny nose
+    potionSphere(
+        creature, 0, 0.22, 0.35,
+        0.055, 0.045, 0.035,
+        0xff9bdc
+    );
+
+    // Cute smile
+    potionSphere(
+        creature, 0, 0.13, 0.34,
+        0.055, 0.018, 0.015,
+        0xa64b94
+    );
+
+    // Pink cheeks
+    for (let side of [-1, 1]) {
+
+        potionSphere(
+            creature,
+            side * 0.27,
+            0.20,
+            0.28,
+            0.075, 0.045, 0.025,
+            0xffa5d9
+        );
+    }
+
+    // =====================================
+    // TINY ARMS
+    // =====================================
+
+    for (let side of [-1, 1]) {
+
+        const arm = potionSphere(
+            creature,
+            side * 0.34,
+            0.12,
+            0.02,
+            0.09, 0.18, 0.10,
+            0x9b8cff
+        );
+
+        arm.rotation.z = side * 0.5;
+    }
+
+    // =====================================
+    // MAGICAL TAIL
+    // =====================================
+
+    const tail = potionSphere(
+        creature, 0, -0.08, -0.32,
+        0.13, 0.30, 0.13,
+        0xb69aff
+    );
+
+    tail.rotation.z = 0.4;
+
+    // Tail tip
+    potionSphere(
+        creature, 0, -0.34, -0.32,
+        0.11, 0.12, 0.11,
+        0xffa9e8
+    );
+
+    // =====================================
+    // GOLDEN FOREHEAD CRYSTAL
+    // =====================================
+
+    potionAddMesh(
+        new THREE.OctahedronGeometry(0.12),
+        new THREE.MeshStandardMaterial({
+            color: 0xffdf79,
+            emissive: 0xb87920,
+            emissiveIntensity: 0.8
+        }),
+        0, 0.68, 0.05,
+        creature
+    );
+
+    // Tiny decorative stars
+    for (let side of [-1, 1]) {
+
+        potionAddMesh(
+            new THREE.OctahedronGeometry(0.055),
+            potionMaterial(0xffd878),
+            side * 0.43, 0.62, 0,
+            creature
+        );
+    }
+
+    creature.userData.isCompanion = true;
+
+    potionCompanion = creature;
+}
+
+
+// ---------------------------------------------
+// RESPONSIVE 3D VIEW
+// ---------------------------------------------
+
+function resizePotionScene() {
+
+    if (!potionRenderer || !potionCamera) return;
+
+    const container = document.getElementById(
+        'potion-game-container'
+    );
+
+    if (!container) return;
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    if (!width || !height) return;
+
+    potionCamera.aspect = width / height;
+    potionCamera.updateProjectionMatrix();
+
+    potionRenderer.setSize(width, height, false);
+}
+
+
+// ---------------------------------------------
+// MAGICAL ANIMATION
+// ---------------------------------------------
+
+
+
+function potionGameLoop(timestamp) {
+
+    if (!potionRunning || potionPaused) return;
+
+    potionAnimationId = requestAnimationFrame(
+        potionGameLoop
+    );
+
+    const delta = potionLastFrame
+        ? Math.min((timestamp - potionLastFrame) / 1000, 0.05)
+        : 0;
+
+    potionLastFrame = timestamp;
+
+    potionTime -= delta;
+
+    if (potionTime <= 0) {
+
+        potionTime = 0;
+        finishPotionRound();
+
+        return;
+    }
+
+    updatePotionHUD();
+
+    const time = timestamp * 0.001;
+
+    // =====================================
+    // WITCH FLOATING AND BREATHING
+    // =====================================
+
+    if (potionWitch) {
+
+        potionWitch.position.y =
+            0.85 + Math.sin(time * 1.5) * 0.025;
+
+        potionWitch.rotation.z =
+            Math.sin(time * 0.8) * 0.018;
+
+        potionWitch.rotation.y =
+            Math.sin(time * 0.55) * 0.025;
+
+        potionWitch.scale.y =
+            1 + Math.sin(time * 1.8) * 0.006;
+    }
+
+    // =====================================
+    // LONG STRAIGHT HAIR GENTLE SWAY
+    // =====================================
+
+    if (potionWitch) {
+
+        potionWitch.children.forEach((part, index) => {
+
+            if (index <= 6) {
+
+                part.rotation.z =
+                    Math.sin(time * 1.2 + index * 0.4) * 0.012;
+            }
+        });
+    }
+
+    // =====================================
+    // COMPANION FLOATING AND BREATHING
+    // =====================================
+
+    if (potionCompanion) {
+
+        potionCompanion.position.y =
+            1.05 + Math.sin(time * 2.3) * 0.12;
+
+        potionCompanion.position.x =
+            -0.55 + Math.sin(time * 1.2) * 0.045;
+
+        potionCompanion.rotation.z =
+            Math.sin(time * 1.7) * 0.075;
+
+        potionCompanion.rotation.y =
+            Math.sin(time * 1.1) * 0.12;
+
+        const breathing =
+            1 + Math.sin(time * 2.5) * 0.025;
+
+        potionCompanion.scale.set(
+            breathing,
+            breathing,
+            breathing
+        );
+    }
+
+    // =====================================
+    // MAGICAL BUBBLES
+    // =====================================
+
+    potionBubbles.forEach(bubble => {
+
+        bubble.mesh.position.y =
+            bubble.baseY +
+            Math.sin(time * bubble.speed * 2) * 0.14;
+
+        bubble.mesh.scale.setScalar(
+            0.8 + Math.abs(
+                Math.sin(time * bubble.speed)
+            ) * 0.6
+        );
+    });
+
+    // =====================================
+    // FLOATING CRYSTALS
+    // =====================================
+
+    potionSparkles.forEach(sparkle => {
+
+        sparkle.mesh.rotation.y += delta * 1.5;
+
+        sparkle.mesh.rotation.x += delta * 0.7;
+
+        sparkle.mesh.position.y =
+            sparkle.baseY +
+            Math.sin(time * 2 + sparkle.phase) * 0.08;
+    });
+
+    // =====================================
+    // MAGICAL FLOATING PARTICLES
+    // =====================================
+
+    potionMagicParticles.forEach(particle => {
+
+        particle.angle += particle.speed * delta;
+
+        particle.mesh.position.x =
+            -1.65 +
+            Math.cos(particle.angle) * particle.radius;
+
+        particle.mesh.position.y =
+            particle.baseY +
+            Math.sin(time * 2 + particle.phase) * 0.18;
+
+        particle.mesh.position.z =
+            1.1 +
+            Math.sin(particle.angle) * 0.45;
+
+        particle.mesh.material.opacity =
+            0.35 +
+            Math.abs(
+                Math.sin(time * 2.5 + particle.phase)
+            ) * 0.65;
+
+        particle.mesh.scale.setScalar(
+            0.7 +
+            Math.abs(
+                Math.sin(time * 3 + particle.phase)
+            ) * 0.7
+        );
+    });
+
+    potionRenderer.render(
+        potionScene,
+        potionCamera
+    );
+}
+
+// ---------------------------------------------
+// GAME HUD
+// ---------------------------------------------
+
+function updatePotionHUD() {
+
+    const score = document.getElementById('potion-score');
+    const timer = document.getElementById('potion-timer');
+    const recipes = document.getElementById('potion-recipes');
+
+    if (score) score.textContent = potionScore;
+
+    if (timer) timer.textContent = Math.ceil(potionTime);
+
+    if (recipes) {
+        recipes.textContent = potionRecipesCompleted;
+    }
+}
+
+
+// ---------------------------------------------
+// RECIPE GENERATOR
+// ---------------------------------------------
+
+
+function generatePotionRecipe() {
+
+    const difficulty = Math.min(
+        Math.floor(potionRecipesCompleted / 2),
+        3
+    );
+
+    const recipeLength = 3 + difficulty;
+
+    const shuffled = [...potionIngredients]
+        .sort(() => Math.random() - 0.5);
+
+    potionCurrentRecipe = shuffled
+        .slice(0, recipeLength)
+        .map(item => item.id);
+
+    potionSelected = [];
+    potionRecipeLocked = false;
+
+    // Correct ingredients + distractors
+    const optionCount = Math.min(
+        potionIngredients.length,
+        6 + difficulty * 2
+    );
+
+    potionCurrentOptions = [...potionIngredients]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, optionCount);
+
+    // Ensure all recipe ingredients appear
+    potionCurrentRecipe.forEach(id => {
+
+        if (!potionCurrentOptions.some(item => item.id === id)) {
+
+            const item = potionIngredients.find(
+                ingredient => ingredient.id === id
+            );
+
+            if (item) {
+                potionCurrentOptions[
+                    Math.floor(Math.random() * potionCurrentOptions.length)
+                ] = item;
+            }
+        }
+    });
+
+    renderPotionRecipe();
+    renderPotionIngredients();
+}
+
+// ---------------------------------------------
+// RECIPE DISPLAY
+// ---------------------------------------------
+
+function renderPotionRecipe() {
+
+    const container = document.getElementById(
+        'potion-recipe-items'
+    );
+
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    potionCurrentRecipe.forEach((id, index) => {
+
+        const ingredient = potionIngredients.find(
+            item => item.id === id
+        );
+
+        const slot = document.createElement('div');
+
+        slot.className = 'potion-recipe-slot';
+
+        if (potionSelected[index]) {
+
+            slot.classList.add('filled');
+
+            const selectedIngredient = potionIngredients.find(
+                item => item.id === potionSelected[index]
+            );
+
+            slot.textContent = selectedIngredient.icon;
+
+        } else {
+
+            slot.textContent = '?';
+        }
+
+        container.appendChild(slot);
+    });
+}
+
+
+// ---------------------------------------------
+// INGREDIENT BUTTONS
+// ---------------------------------------------
+
+// ---------------------------------------------
+// SELECT INGREDIENT
+// ---------------------------------------------
+
+
+function selectPotionIngredient(id) {
+
+    if (
+        !potionRunning ||
+        potionPaused ||
+        potionRecipeLocked
+    ) return;
+
+    if (potionSelected.length >= potionCurrentRecipe.length) {
+        return;
+    }
+
+    const expected = potionCurrentRecipe[
+        potionSelected.length
+    ];
+
+    if (id === expected) {
+
+        potionSelected.push(id);
+
+        potionScore += 10;
+        potionCorrectCount++;
+
+        potionSound(620);
+
+        showPotionFeedback('✨ PERFECT INGREDIENT!', true);
+
+        renderPotionRecipe();
+
+        if (
+            potionSelected.length ===
+            potionCurrentRecipe.length
+        ) {
+
+            potionRecipeLocked = true;
+
+            potionRecipesCompleted++;
+
+            potionScore +=
+                50 + potionRecipesCompleted * 10;
+
+            potionSound(880);
+
+            showPotionFeedback(
+                '🌟 MAGICAL POTION COMPLETED!',
+                true
+            );
+
+            updatePotionHUD();
+
+            setTimeout(() => {
+
+                if (!potionRunning || potionPaused) return;
+
+                generatePotionRecipe();
+
+            }, 650);
+        }
+
+    } else {
+
+        potionScore = Math.max(0, potionScore - 15);
+
+        potionSound(180);
+
+        showPotionFeedback(
+            '💫 WRONG INGREDIENT! TRY AGAIN!',
+            false
+        );
+
+        potionSelected = [];
+
+        renderPotionRecipe();
+    }
+
+    updatePotionHUD();
+}
+
+
+
+// ---------------------------------------------
+// FEEDBACK
+// ---------------------------------------------
+
+function showPotionFeedback(message, success) {
+
+    const element = document.getElementById(
+        'potion-feedback'
+    );
+
+    if (!element) return;
+
+    element.textContent = message;
+
+    element.style.color = success
+        ? '#8ffff0'
+        : '#ff9bcf';
+
+    element.style.opacity = '1';
+
+    clearTimeout(element.feedbackTimer);
+
+    element.feedbackTimer = setTimeout(() => {
+
+        element.style.opacity = '0';
+
+    }, 1600);
+}
+
+
+// ---------------------------------------------
+// SOUND EFFECTS
+// ---------------------------------------------
+
+function potionSound(frequency) {
+
+    if (!potionSoundEnabled) return;
+
+    try {
+
+        const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContextClass) return;
+
+        if (!potionAudioContext) {
+            potionAudioContext = new AudioContextClass();
+        }
+
+        if (potionAudioContext.state === 'suspended') {
+            potionAudioContext.resume();
+        }
+
+        const oscillator =
+            potionAudioContext.createOscillator();
+
+        const gain =
+            potionAudioContext.createGain();
+
+        oscillator.type = 'sine';
+
+        oscillator.frequency.value = frequency;
+
+        gain.gain.setValueAtTime(
+            0.08,
+            potionAudioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            potionAudioContext.currentTime + 0.18
+        );
+
+        oscillator.connect(gain);
+        gain.connect(potionAudioContext.destination);
+
+        oscillator.start();
+
+        oscillator.stop(
+            potionAudioContext.currentTime + 0.18
+        );
+
+    } catch (error) {
+        console.warn('Potion sound unavailable:', error);
+    }
+}
+
+
+function togglePotionSound() {
+
+    potionSoundEnabled = !potionSoundEnabled;
+
+    const button = document.getElementById(
+        'potion-sound-btn'
+    );
+
+    if (button) {
+        button.textContent = potionSoundEnabled
+            ? '🔊'
+            : '🔇';
+    }
+
+    if (potionSoundEnabled) {
+        potionSound(520);
+    }
+}
+
+
+// ---------------------------------------------
+// START ROUND
+// ---------------------------------------------
+
+async function startPotionRound() {
+
+    if (potionAttemptPending) return;
+
+    if (potionRunning) return;
+
+    potionAttemptPending = true;
+
+    const sessionToken = ++potionSessionToken;
+
+    try {
+
+        const response = await fetch(
+            '/api/arcade/consume',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Telegram-Init-Data': tg.initData
+                },
+
+                body: JSON.stringify({
+                    game_id: 'asteroid-rush'
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (sessionToken !== potionSessionToken) return;
+
+        if (!response.ok || !data.success) {
+
+            await loadArcadeAttempts();
+
+            alert(
+                'No attempts left! Please try again after the cooldown.'
+            );
+
+            exitPotionGame();
+
+            return;
+        }
+
+        loadArcadeAttempts();
+
+    } catch (error) {
+
+        console.error(
+            'Potion Lab attempt check failed:',
+            error
+        );
+
+        alert(
+            'Could not verify attempts. Please try again.'
+        );
+
+        return;
+
+    } finally {
+
+        potionAttemptPending = false;
+    }
+
+    if (sessionToken !== potionSessionToken) return;
+
+    if (!potionScene) {
+
+        const success = createPotionScene();
+
+        if (!success) {
+
+            alert(
+                'Potion Lab could not start. Please refresh the app.'
+            );
+
+            return;
+        }
+
+    } else {
+
+        resizePotionScene();
+    }
+
+    if (potionAnimationId) {
+        cancelAnimationFrame(potionAnimationId);
+        potionAnimationId = null;
+    }
+
+    potionScore = 0;
+    potionTime = 120;
+    potionRecipesCompleted = 0;
+    potionCorrectCount = 0;
+
+    potionLastFrame = 0;
+
+    potionPaused = false;
+    potionRunning = true;
+
+    document.getElementById('potion-pause-overlay')
+        .style.display = 'none';
+
+    document.getElementById('potion-result-overlay')
+        .style.display = 'none';
+
+    document.getElementById('potion-loading')
+        .style.display = 'none';
+
+    generatePotionRecipe();
+
+    updatePotionHUD();
+
+    showPotionFeedback(
+        '✨ WELCOME TO YOUR MAGICAL LAB!',
+        true
+    );
+
+    potionRenderer.render(
+        potionScene,
+        potionCamera
+    );
+
+    potionAnimationId = requestAnimationFrame(
+        potionGameLoop
+    );
+}
+
+
+// ---------------------------------------------
+// PAUSE
+// ---------------------------------------------
+
+function pausePotionGame() {
+
+    if (!potionRunning || potionPaused) return;
+
+    potionPaused = true;
+
+    if (potionAnimationId) {
+
+        cancelAnimationFrame(potionAnimationId);
+
+        potionAnimationId = null;
+    }
+
+    document.getElementById('potion-pause-overlay')
+        .style.display = 'flex';
+}
+
+
+// ---------------------------------------------
+// RESUME
+// ---------------------------------------------
+
+function resumePotionGame() {
+
+    if (!potionRunning || !potionPaused) return;
+
+    potionPaused = false;
+
+    potionLastFrame = 0;
+
+    document.getElementById('potion-pause-overlay')
+        .style.display = 'none';
+
+    potionAnimationId = requestAnimationFrame(
+        potionGameLoop
+    );
+}
+
+
+// ---------------------------------------------
+// FINISH ROUND
+// ---------------------------------------------
+
+function finishPotionRound() {
+
+    if (!potionRunning) return;
+
+    potionRunning = false;
+    potionPaused = false;
+
+    if (potionAnimationId) {
+
+        cancelAnimationFrame(potionAnimationId);
+
+        potionAnimationId = null;
+    }
+
+    const title = document.getElementById(
+        'potion-result-title'
+    );
+
+    const finalScore = document.getElementById(
+        'potion-final-score'
+    );
+
+    const message = document.getElementById(
+        'potion-result-message'
+    );
+
+    if (title) {
+        title.textContent = 'LAB COMPLETE!';
+    }
+
+    if (finalScore) {
+        finalScore.textContent = potionScore;
+    }
+
+    if (message) {
+
+        message.textContent =
+            'You completed ' +
+            potionRecipesCompleted +
+            ' magical recipes!';
+    }
+
+    document.getElementById('potion-result-overlay')
+        .style.display = 'flex';
+
+    updatePotionHUD();
+}
+
+
+// ---------------------------------------------
+// RESTART
+// ---------------------------------------------
+
+function restartPotionGame() {
+
+    if (potionRunning || potionAttemptPending) return;
+
+    startPotionRound();
+}
+
+
+// ---------------------------------------------
+// EXIT
+// ---------------------------------------------
+
+function exitPotionGame() {
+
+    potionSessionToken++;
+
+    potionRunning = false;
+    potionPaused = false;
+    potionAttemptPending = false;
+
+    if (potionAnimationId) {
+
+        cancelAnimationFrame(potionAnimationId);
+
+        potionAnimationId = null;
+    }
+
+    document.getElementById('potion-pause-overlay')
+        .style.display = 'none';
+
+    document.getElementById('potion-result-overlay')
+        .style.display = 'none';
+
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    document.getElementById('arcade-page')
+        .classList.add('active');
+
+    document.getElementById('tab-arcade')
+        .classList.add('active');
+
+    loadArcadeAttempts();
+}
+
+
+// ---------------------------------------------
+// WINDOW RESIZE
+// ---------------------------------------------
+
+window.addEventListener(
+    'resize',
+    resizePotionScene
+);
+
 
     </script>
 

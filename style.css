@@ -896,3 +896,352 @@ h2 {
     }
 }
 
+/* =====================================
+   🧪 POTION LAB - MAGICAL DESIGN
+===================================== */
+
+#potion-lab-page {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 12px 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background:
+        radial-gradient(
+            ellipse at 50% 15%,
+            rgba(116, 54, 180, 0.22),
+            transparent 55%
+        ),
+        linear-gradient(180deg, #100923, #080719);
+    color: #fff;
+}
+
+.potion-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 5px 0 12px;
+}
+
+.potion-game-title {
+    color: #f4d8ff;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-align: center;
+    text-shadow:
+        0 0 8px #d66cff,
+        0 0 20px rgba(190, 80, 255, 0.65);
+}
+
+.potion-control-btn {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid rgba(126, 238, 255, 0.55);
+    border-radius: 13px;
+    background: linear-gradient(145deg, #302052, #17142e);
+    color: white;
+    font-size: 18px;
+    box-shadow: 0 0 12px rgba(89, 218, 255, 0.18);
+    cursor: pointer;
+}
+
+.potion-hud {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.potion-hud-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border: 1px solid rgba(183, 126, 255, 0.35);
+    border-radius: 13px;
+    background: linear-gradient(
+        145deg,
+        rgba(69, 38, 104, 0.75),
+        rgba(18, 24, 55, 0.9)
+    );
+    box-shadow: inset 0 0 12px rgba(169, 100, 255, 0.08);
+}
+
+.potion-hud-box small {
+    color: #b9eaff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.potion-hud-box strong {
+    color: #fff1ff;
+    font-size: 19px;
+    text-shadow: 0 0 10px #bd75ff;
+}
+
+#potion-game-container {
+    position: relative;
+    width: 100%;
+    height: clamp(230px, 35vh, 340px);
+    overflow: hidden;
+    border: 1px solid rgba(199, 125, 255, 0.65);
+    border-radius: 19px;
+    background:
+        radial-gradient(
+            ellipse at 50% 45%,
+            #42236d 0%,
+            #1a1238 55%,
+            #080719 100%
+        );
+    box-shadow:
+        0 0 22px rgba(174, 91, 255, 0.22),
+        inset 0 0 25px rgba(70, 224, 255, 0.12);
+}
+
+#potion-game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+#potion-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(9, 5, 25, 0.94);
+    color: #8df5ff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+#potion-loading div {
+    font-size: 52px;
+    filter: drop-shadow(0 0 15px #d16bff);
+}
+
+.potion-recipe-panel,
+.potion-ingredients-panel {
+    margin-top: 11px;
+    padding: 11px;
+    border: 1px solid rgba(169, 126, 255, 0.35);
+    border-radius: 15px;
+    background: linear-gradient(
+        145deg,
+        rgba(38, 24, 70, 0.92),
+        rgba(14, 23, 48, 0.96)
+    );
+    box-shadow: inset 0 0 16px rgba(153, 93, 255, 0.08);
+}
+
+.potion-recipe-title,
+.potion-ingredients-title {
+    margin-bottom: 9px;
+    color: #e7c4ff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: center;
+    text-shadow: 0 0 9px rgba(207, 120, 255, 0.65);
+}
+
+#potion-recipe-items {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 43px;
+}
+
+.potion-recipe-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px dashed rgba(164, 222, 255, 0.55);
+    border-radius: 11px;
+    background: rgba(10, 18, 43, 0.8);
+    color: #d8c5ff;
+    font-size: 20px;
+    box-shadow: inset 0 0 10px rgba(92, 180, 255, 0.08);
+}
+
+.potion-recipe-slot.filled {
+    border: 1px solid #74f2ff;
+    background: rgba(37, 92, 111, 0.35);
+    box-shadow: 0 0 12px rgba(92, 234, 255, 0.3);
+}
+
+#potion-ingredients {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.potion-ingredient-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    min-height: 62px;
+    padding: 7px 3px;
+    border: 1px solid rgba(126, 224, 255, 0.32);
+    border-radius: 12px;
+    background: linear-gradient(145deg, #302052, #151b38);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.potion-ingredient-btn span {
+    font-size: 23px;
+}
+
+.potion-ingredient-btn:active {
+    transform: scale(0.92);
+    border-color: #8cf5ff;
+    box-shadow: 0 0 14px rgba(95, 235, 255, 0.45);
+}
+
+#potion-feedback {
+    min-height: 25px;
+    margin-top: 9px;
+    color: #9ff8ff;
+    font-size: 12px;
+    font-weight: 900;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(92, 234, 255, 0.7);
+
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+
+.potion-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(7, 3, 22, 0.9);
+    backdrop-filter: blur(10px);
+}
+
+.potion-popup {
+    width: 100%;
+    max-width: 330px;
+    padding: 25px 18px;
+    border: 1px solid rgba(199, 132, 255, 0.65);
+    border-radius: 22px;
+    background: linear-gradient(145deg, #302052, #11182f);
+    box-shadow:
+        0 0 30px rgba(185, 92, 255, 0.3),
+        inset 0 0 20px rgba(103, 224, 255, 0.08);
+    text-align: center;
+}
+
+.potion-popup-icon {
+    margin-bottom: 12px;
+    font-size: 43px;
+    filter: drop-shadow(0 0 12px #d477ff);
+}
+
+.potion-popup h2 {
+    color: #f2d5ff;
+    font-size: 19px;
+    text-shadow: 0 0 12px #c46aff;
+}
+
+.potion-popup p {
+    color: #c8c4e5;
+    font-size: 13px;
+}
+
+.potion-popup strong {
+    display: block;
+    margin: 12px 0;
+    color: #8cf5ff;
+    font-size: 27px;
+    text-shadow: 0 0 12px #54dfff;
+}
+
+@media (max-height: 700px) {
+    #potion-game-container {
+        height: 230px;
+    }
+
+    .potion-recipe-panel,
+    .potion-ingredients-panel {
+        margin-top: 7px;
+        padding: 8px;
+    }
+
+    .potion-ingredient-btn {
+        min-height: 53px;
+    }
+}
+/* =====================================
+   🧪 POTION LAB ARCADE CARD
+===================================== */
+
+.potion-lab-card {
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(220, 105, 255, 0.28),
+            transparent 65%
+        ),
+        linear-gradient(145deg, #32164d, #101c3c) !important;
+
+    border: 1px solid rgba(225, 147, 255, 0.65) !important;
+
+    box-shadow:
+        0 0 12px rgba(199, 91, 255, 0.22),
+        inset 0 0 18px rgba(119, 225, 255, 0.08);
+}
+
+.potion-lab-card .arcade-game-icon {
+    filter:
+        drop-shadow(0 0 8px #e58aff)
+        drop-shadow(0 0 15px #9b64ff);
+
+    animation: potionCardGlow 2.5s ease-in-out infinite;
+}
+
+.potion-lab-card .arcade-game-name {
+    color: #f3d5ff;
+    text-shadow: 0 0 10px rgba(222, 132, 255, 0.7);
+}
+
+.potion-lab-card .arcade-game-status {
+    color: #8ff7ff;
+    text-shadow: 0 0 9px #55dfff;
+}
+
+@keyframes potionCardGlow {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-3px) scale(1.08);
+    }
+}
