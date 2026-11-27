@@ -572,6 +572,13 @@ h2 {
     box-shadow: 0 0 12px rgba(0, 200, 255, 0.35);
 }
 
+.potion-lab-card .arcade-game-status {
+    color: #ffffff;
+    background: linear-gradient(90deg, #792cff, #00bde9);
+    border: none;
+    box-shadow: 0 0 12px rgba(0, 200, 255, 0.35);
+}
+
 
 /* ⚡ CYBERPUNK ATTEMPTS PANEL */
 

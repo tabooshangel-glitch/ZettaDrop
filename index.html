@@ -4147,7 +4147,7 @@ function createPotionScene() {
 
     potionScene = new THREE.Scene();
 
-    // Rich magical laboratory background
+    // Natural magical laboratory background
     potionScene.background = new THREE.Color(0x24113d);
 
     potionCamera = new THREE.PerspectiveCamera(
@@ -4178,21 +4178,23 @@ function createPotionScene() {
     );
 
     potionRenderer.outputEncoding = THREE.sRGBEncoding;
+    potionRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    potionRenderer.toneMappingExposure = 0.85;
 
     // =====================================
-    // COLORFUL MAGICAL LIGHTING
+    // SOFT AND NATURAL LIGHTING
     // =====================================
 
     const ambient = new THREE.AmbientLight(
         0xffffff,
-        1.5
+        0.75
     );
 
     potionScene.add(ambient);
 
     const pinkLight = new THREE.PointLight(
         0xff42bd,
-        2.5,
+        0.45,
         14
     );
 
@@ -4201,7 +4203,7 @@ function createPotionScene() {
 
     const blueLight = new THREE.PointLight(
         0x36cfff,
-        2.2,
+        0.40,
         14
     );
 
@@ -4210,7 +4212,7 @@ function createPotionScene() {
 
     const goldenLight = new THREE.PointLight(
         0xffbd45,
-        1.8,
+        0.30,
         10
     );
 
@@ -4219,7 +4221,7 @@ function createPotionScene() {
 
     const greenLight = new THREE.PointLight(
         0x65ff9b,
-        1.2,
+        0.20,
         9
     );
 
@@ -4230,14 +4232,12 @@ function createPotionScene() {
     // SOLID LABORATORY FLOOR AND WALLS
     // =====================================
 
-    // Main floor
     potionAddMesh(
         new THREE.BoxGeometry(12, 0.25, 5.5),
         potionMaterial(0x57345f),
         0, -0.15, 0
     );
 
-    // Colorful floor tiles
     const tileColors = [
         0x8b4b85,
         0x315d83,
@@ -4258,14 +4258,12 @@ function createPotionScene() {
         );
     }
 
-    // Solid back wall
     potionAddMesh(
         new THREE.BoxGeometry(12, 7, 0.25),
         potionMaterial(0x49305e),
         0, 3.1, -3.2
     );
 
-    // Decorative wall panels
     const panelColors = [
         0x75428a,
         0x315d83,
@@ -4288,14 +4286,12 @@ function createPotionScene() {
     // LARGE COLORFUL MAGICAL WINDOW
     // =====================================
 
-    // Window frame
     potionAddMesh(
         new THREE.BoxGeometry(2.7, 3.2, 0.2),
         potionMaterial(0xf1bd68),
         0, 3.5, -2.8
     );
 
-    // Window colored panes
     const windowColors = [
         0x397fd1,
         0x8d54c9,
@@ -4318,7 +4314,6 @@ function createPotionScene() {
         );
     }
 
-    // Window cross
     potionAddMesh(
         new THREE.BoxGeometry(0.11, 3, 0.12),
         potionMaterial(0xffdf91),
@@ -4331,7 +4326,6 @@ function createPotionScene() {
         0, 3.5, -2.55
     );
 
-    // Window decorative top
     potionAddMesh(
         new THREE.BoxGeometry(3.1, 0.18, 0.3),
         potionMaterial(0xffb7d9),
@@ -4353,21 +4347,18 @@ function createPotionScene() {
 
         const shelfY = 2.4 + i * 1.25;
 
-        // Left shelf
         potionAddMesh(
             new THREE.BoxGeometry(2.6, 0.16, 0.65),
             potionMaterial(shelfColors[i]),
             -3, shelfY, -1.1
         );
 
-        // Right shelf
         potionAddMesh(
             new THREE.BoxGeometry(2.6, 0.16, 0.65),
             potionMaterial(shelfColors[i + 2]),
             3, shelfY, -1.1
         );
 
-        // Shelf golden front edges
         potionAddMesh(
             new THREE.BoxGeometry(2.65, 0.06, 0.09),
             potionMaterial(0xffd47c),
@@ -4404,18 +4395,12 @@ function createPotionScene() {
 
         const isLeft = i < 6;
         const index = i % 6;
-
         const shelfLevel = index < 3 ? 0 : 1;
-
         const side = isLeft ? -3 : 3;
-
         const x = side + (index % 3 - 1) * 0.7;
-
         const y = 2.57 + shelfLevel * 1.25;
-
         const color = bottleColors[i];
 
-        // Bottle body
         potionSphere(
             null,
             x, y + 0.22, -0.72,
@@ -4423,7 +4408,6 @@ function createPotionScene() {
             color
         );
 
-        // Bottle neck
         potionCylinder(
             null,
             x, y + 0.47, -0.72,
@@ -4431,7 +4415,6 @@ function createPotionScene() {
             0xf4d18b
         );
 
-        // Bottle stopper
         potionSphere(
             null,
             x, y + 0.55, -0.72,
@@ -4439,7 +4422,6 @@ function createPotionScene() {
             0xffe4a1
         );
 
-        // Decorative bottle label
         potionAddMesh(
             new THREE.BoxGeometry(0.16, 0.09, 0.025),
             potionMaterial(0xffe8b7),
@@ -4463,7 +4445,6 @@ function createPotionScene() {
     for (let i = 0; i < 6; i++) {
 
         const side = i < 3 ? -3 : 3;
-
         const index = i % 3;
 
         potionAddMesh(
@@ -4479,35 +4460,30 @@ function createPotionScene() {
     // WORKBENCH
     // =====================================
 
-    // Colorful tabletop
     potionAddMesh(
         new THREE.BoxGeometry(7, 0.25, 1.2),
         potionMaterial(0x9b5b55),
         0, 0.8, 0
     );
 
-    // Golden tabletop edge
     potionAddMesh(
         new THREE.BoxGeometry(7.05, 0.08, 1.25),
         potionMaterial(0xffcf77),
         0, 0.66, 0
     );
 
-    // Left table leg
     potionAddMesh(
         new THREE.BoxGeometry(0.22, 1.1, 0.9),
         potionMaterial(0x654071),
         -2.8, 0.2, 0
     );
 
-    // Right table leg
     potionAddMesh(
         new THREE.BoxGeometry(0.22, 1.1, 0.9),
         potionMaterial(0x654071),
         2.8, 0.2, 0
     );
 
-    // Decorative table drawers
     potionAddMesh(
         new THREE.BoxGeometry(1.1, 0.35, 0.12),
         potionMaterial(0x397b91),
@@ -4520,7 +4496,6 @@ function createPotionScene() {
         1.8, 0.35, 0.48
     );
 
-    // Drawer handles
     potionSphere(
         null,
         -1.8, 0.35, 0.57,
@@ -4543,7 +4518,6 @@ function createPotionScene() {
 
     potionScene.add(cauldron);
 
-    // Main cauldron body
     potionCylinder(
         cauldron,
         1.6, 1.45, 0,
@@ -4551,7 +4525,6 @@ function createPotionScene() {
         0x433a61
     );
 
-    // Golden cauldron rim
     potionCylinder(
         cauldron,
         1.6, 1.9, 0,
@@ -4559,7 +4532,6 @@ function createPotionScene() {
         0xffc45d
     );
 
-    // Solid colorful magical liquid
     const potionLiquid = potionAddMesh(
         new THREE.CircleGeometry(0.64, 32),
         new THREE.MeshBasicMaterial({
@@ -4571,7 +4543,6 @@ function createPotionScene() {
 
     potionLiquid.rotation.x = -Math.PI / 2;
 
-    // Cauldron decorative bands
     potionCylinder(
         cauldron,
         1.6, 1.2, 0,
@@ -4579,7 +4550,6 @@ function createPotionScene() {
         0xb15bc8
     );
 
-    // Cauldron legs
     for (let i = 0; i < 3; i++) {
 
         const angle = i * Math.PI * 2 / 3;
@@ -4641,7 +4611,7 @@ function createPotionScene() {
             new THREE.MeshStandardMaterial({
                 color: crystalColors[i],
                 emissive: crystalColors[i],
-                emissiveIntensity: 0.35,
+                emissiveIntensity: 0.10,
                 roughness: 0.3,
                 metalness: 0.15
             }),
@@ -4666,7 +4636,7 @@ function createPotionScene() {
             new THREE.MeshStandardMaterial({
                 color: crystalColors[i + 1],
                 emissive: crystalColors[i + 1],
-                emissiveIntensity: 0.4
+                emissiveIntensity: 0.12
             }),
             i < 2 ? -4.5 : 4.5,
             3.3 + (i % 2) * 0.8,
@@ -4687,7 +4657,7 @@ function createPotionScene() {
             new THREE.MeshStandardMaterial({
                 color: i % 2 ? 0xffd65e : 0xff8fd4,
                 emissive: i % 2 ? 0xffa72d : 0xc63b96,
-                emissiveIntensity: 0.6
+                emissiveIntensity: 0.18
             }),
             -4.4 + i * 1.25,
             5.25,
