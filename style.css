@@ -1091,34 +1091,74 @@ h2 {
     gap: 8px;
 }
 
+
 .potion-ingredient-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     min-width: 0;
-    min-height: 62px;
-    padding: 7px 3px;
-    border: 1px solid rgba(126, 224, 255, 0.32);
-    border-radius: 12px;
-    background: linear-gradient(145deg, #302052, #151b38);
-    color: #fff;
+    min-height: 76px;
+    padding: 9px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 15px;
+    background: linear-gradient(145deg, #7544b8, #39245f);
+    color: #ffffff;
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 900;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.potion-ingredient-btn span {
-    font-size: 23px;
+.potion-ingredient-icon {
+    font-size: 29px;
+    line-height: 1.2;
+}
+
+.potion-ingredient-name {
+    font-size: 10px;
+    font-weight: 900;
+    color: #ffffff;
+    text-align: center;
+}
+
+.potion-ingredient-btn:nth-child(6n + 1) {
+    background: linear-gradient(145deg, #e85da8, #873b9e);
+}
+
+.potion-ingredient-btn:nth-child(6n + 2) {
+    background: linear-gradient(145deg, #a66bff, #5935b5);
+}
+
+.potion-ingredient-btn:nth-child(6n + 3) {
+    background: linear-gradient(145deg, #38bde9, #285baf);
+}
+
+.potion-ingredient-btn:nth-child(6n + 4) {
+    background: linear-gradient(145deg, #ff9850, #c94d56);
+}
+
+.potion-ingredient-btn:nth-child(6n + 5) {
+    background: linear-gradient(145deg, #40d8d0, #237d91);
+}
+
+.potion-ingredient-btn:nth-child(6n) {
+    background: linear-gradient(145deg, #9bc85a, #477c50);
 }
 
 .potion-ingredient-btn:active {
-    transform: scale(0.92);
-    border-color: #8cf5ff;
-    box-shadow: 0 0 14px rgba(95, 235, 255, 0.45);
+    transform: scale(0.94);
+    box-shadow: 0 0 17px rgba(130, 235, 255, 0.65);
 }
+
+.potion-ingredient-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    filter: grayscale(0.4);
+}
+
 
 #potion-feedback {
     min-height: 25px;

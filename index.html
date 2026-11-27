@@ -5188,6 +5188,55 @@ function renderPotionRecipe() {
 // INGREDIENT BUTTONS
 // ---------------------------------------------
 
+
+function renderPotionIngredients() {
+
+    const container = document.getElementById(
+        'potion-ingredients'
+    );
+
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    potionCurrentOptions.forEach((ingredient, index) => {
+
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.className = 'potion-ingredient-btn';
+
+        button.innerHTML = `
+            <span class="potion-ingredient-icon">
+                ${ingredient.icon}
+            </span>
+            <span class="potion-ingredient-name">
+                ${ingredient.name}
+            </span>
+        `;
+
+        button.style.setProperty(
+            '--ingredient-index',
+            index
+        );
+
+        button.addEventListener('click', () => {
+            selectPotionIngredient(ingredient.id);
+        });
+
+        if (
+            potionSelected.includes(ingredient.id) ||
+            potionRecipeLocked ||
+            !potionRunning ||
+            potionPaused
+        ) {
+            button.disabled = true;
+        }
+
+        container.appendChild(button);
+    });
+}
+
 // ---------------------------------------------
 // SELECT INGREDIENT
 // ---------------------------------------------
