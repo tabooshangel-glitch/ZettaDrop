@@ -1803,3 +1803,284 @@ h2 {
     justify-content: center;
     box-sizing: border-box;
 }
+
+/* =========================================
+   🪐 SATURN'S COSMIC JOURNEY
+   ========================================= */
+
+#saturn-journey-page {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: 12px;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            ellipse at 50% 35%,
+            rgba(91, 42, 157, 0.32),
+            transparent 55%
+        ),
+        linear-gradient(
+            160deg,
+            #09051d 0%,
+            #100b31 48%,
+            #08051b 100%
+        );
+    color: #ffffff;
+}
+
+/* TOP BAR */
+
+.saturn-game-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 5px 0 12px;
+}
+
+.saturn-game-title {
+    flex: 1;
+    text-align: center;
+    color: #ffe4a0;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-shadow:
+        0 0 8px rgba(255, 194, 80, 0.8),
+        0 0 20px rgba(255, 130, 40, 0.35);
+}
+
+.saturn-control-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border: 1px solid rgba(130, 220, 255, 0.65);
+    border-radius: 13px;
+    background: linear-gradient(
+        145deg,
+        rgba(39, 37, 105, 0.95),
+        rgba(15, 12, 48, 0.95)
+    );
+    color: #ffffff;
+    font-size: 19px;
+    box-shadow:
+        0 0 10px rgba(55, 190, 255, 0.25),
+        inset 0 0 10px rgba(130, 100, 255, 0.15);
+    cursor: pointer;
+}
+
+/* GAME HUD */
+
+.saturn-game-hud {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+.saturn-hud-box {
+    min-width: 0;
+    padding: 9px 4px;
+    border: 1px solid rgba(125, 175, 255, 0.35);
+    border-radius: 12px;
+    background: linear-gradient(
+        145deg,
+        rgba(35, 29, 87, 0.88),
+        rgba(13, 10, 39, 0.95)
+    );
+    text-align: center;
+    box-shadow:
+        0 0 12px rgba(89, 83, 255, 0.13),
+        inset 0 0 10px rgba(91, 150, 255, 0.06);
+}
+
+.saturn-hud-box small {
+    display: block;
+    margin-bottom: 5px;
+    color: #9edfff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+.saturn-hud-box strong {
+    display: block;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+/* 3D GAME VIEWPORT */
+
+#saturn-game-container {
+    position: relative;
+    width: 100%;
+    height: min(65vh, 580px);
+    min-height: 360px;
+    overflow: hidden;
+    border: 1px solid rgba(100, 190, 255, 0.65);
+    border-radius: 19px;
+    background:
+        radial-gradient(
+            ellipse at 50% 40%,
+            #24105b 0%,
+            #100a30 55%,
+            #050316 100%
+        );
+    box-shadow:
+        0 0 18px rgba(50, 150, 255, 0.28),
+        0 0 45px rgba(137, 50, 255, 0.14),
+        inset 0 0 25px rgba(90, 70, 255, 0.12);
+}
+
+#saturn-game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+/* LOADING SCREEN */
+
+#saturn-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background:
+        radial-gradient(
+            circle,
+            rgba(67, 33, 125, 0.92),
+            rgba(7, 4, 27, 0.98)
+        );
+    z-index: 5;
+}
+
+#saturn-loading div {
+    font-size: 62px;
+    filter: drop-shadow(0 0 15px #ffbd58);
+    animation: saturnLoadingFloat 2.5s ease-in-out infinite;
+}
+
+#saturn-loading p {
+    color: #e6d7ff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-align: center;
+}
+
+@keyframes saturnLoadingFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateY(-12px) rotate(5deg);
+    }
+}
+
+/* CONTROL HINT */
+
+.saturn-game-controls-hint {
+    margin: 13px 0 18px;
+    color: #b8a7ff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+/* OVERLAYS */
+
+.saturn-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(5, 3, 22, 0.84);
+    backdrop-filter: blur(9px);
+}
+
+.saturn-popup {
+    width: 100%;
+    max-width: 340px;
+    padding: 25px 18px;
+    border: 1px solid rgba(151, 119, 255, 0.7);
+    border-radius: 22px;
+    background: linear-gradient(
+        155deg,
+        #21104c,
+        #100a2c 75%
+    );
+    text-align: center;
+    box-shadow:
+        0 0 25px rgba(125, 70, 255, 0.3),
+        inset 0 0 20px rgba(126, 100, 255, 0.08);
+}
+
+.saturn-popup-icon {
+    margin-bottom: 12px;
+    font-size: 43px;
+    filter: drop-shadow(0 0 12px rgba(255, 196, 91, 0.65));
+}
+
+.saturn-popup h2 {
+    margin: 8px 0 17px;
+    color: #ffe2a0;
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.saturn-popup p {
+    color: #c8b9ed;
+    font-size: 13px;
+}
+
+.saturn-popup strong {
+    display: block;
+    margin: 10px 0;
+    color: #65eaff;
+    font-size: 27px;
+    font-weight: 900;
+}
+
+.saturn-popup .action-btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* MOBILE */
+
+@media (max-width: 380px) {
+
+    #saturn-journey-page {
+        padding: 9px;
+    }
+
+    .saturn-game-title {
+        font-size: 12px;
+        letter-spacing: 0.6px;
+    }
+
+    .saturn-hud-box {
+        padding: 8px 2px;
+    }
+
+    .saturn-hud-box strong {
+        font-size: 13px;
+    }
+
+    #saturn-game-container {
+        min-height: 340px;
+    }
+}

@@ -329,11 +329,19 @@
 
                 </div>
 
-                <div class="space-card arcade-game-card">
-                    <div class="arcade-game-icon">🪐</div>
-                    <div class="arcade-game-name">PLANET DEFENDER</div>
-                    <div class="arcade-game-desc">Protect the cosmic planets.</div>
-                    <div class="arcade-game-status">COMING SOON</div>
+                <div class="space-card arcade-game-card" id="planet-defender">
+                    <div class="arcade-game-icon saturn-card-icon">
+                        🪐
+                    </div>
+
+                    <div class="arcade-game-name">SATURN'S COSMIC JOURNEY</div>
+
+                    <div class="arcade-game-desc">
+                        Roll through breathtaking cosmic tracks.
+                    </div>
+
+                    <div class="arcade-game-status">PLAY NOW</div>
+
                     <div class="arcade-attempts-panel">
                         <div class="arcade-attempts-title">3 ATTEMPTS LEFT</div>
 
@@ -342,7 +350,7 @@
                             <div class="arcade-attempt">ϟ</div>
                             <div class="arcade-attempt">ϟ</div>
                         </div>
-                    </div>                    
+                    </div>
                 </div>
 
                 <div class="space-card arcade-game-card">
@@ -518,7 +526,6 @@
 
         </div>
 
-
 <!-- 🧪 POTION LAB GAME SCREEN -->
 <div id="potion-lab-page" class="page">
 
@@ -633,6 +640,126 @@
             <button class="action-btn ref-btn"
                     onclick="exitPotionGame()">✨ BACK TO ARCADE</button>
         </div>
+    </div>
+
+</div>
+
+<!-- 🪐 SATURN'S COSMIC JOURNEY GAME SCREEN -->
+<div id="saturn-journey-page" class="page">
+
+    <div class="saturn-game-topbar">
+
+        <button class="saturn-control-btn"
+                onclick="toggleSaturnSound()"
+                id="saturn-sound-btn">🔊</button>
+
+        <div class="saturn-game-title">
+            SATURN'S COSMIC JOURNEY
+        </div>
+
+        <button class="saturn-control-btn"
+                onclick="pauseSaturnGame()"
+                id="saturn-pause-btn">⏸️</button>
+
+    </div>
+
+    <div class="saturn-game-hud">
+
+        <div class="saturn-hud-box">
+            <small>SCORE</small>
+            <strong id="saturn-score">0</strong>
+        </div>
+
+        <div class="saturn-hud-box">
+            <small>TIME</small>
+            <strong id="saturn-timer">120</strong>
+        </div>
+
+        <div class="saturn-hud-box">
+            <small>CRYSTALS</small>
+            <strong id="saturn-crystals">0</strong>
+        </div>
+
+        <div class="saturn-hud-box">
+            <small>HEARTS</small>
+            <strong id="saturn-hearts">❤️❤️❤️</strong>
+        </div>
+
+    </div>
+
+    <div id="saturn-game-container">
+
+        <canvas id="saturn-game-canvas"></canvas>
+
+        <div id="saturn-loading">
+            <div>🪐</div>
+            <p>PREPARING YOUR COSMIC JOURNEY...</p>
+        </div>
+
+    </div>
+
+    <div class="saturn-game-controls-hint">
+        DRAG TO STEER SATURN IN ALL DIRECTIONS
+    </div>
+
+    <!-- ⏸️ PAUSE WINDOW -->
+    <div id="saturn-pause-overlay"
+         class="saturn-overlay"
+         style="display:none;">
+
+        <div class="saturn-popup">
+
+            <div class="saturn-popup-icon">⏸️</div>
+
+            <h2>JOURNEY PAUSED</h2>
+
+            <button class="action-btn ref-btn"
+                    onclick="resumeSaturnGame()">
+                ▶ RESUME JOURNEY
+            </button>
+
+            <button class="action-btn ref-btn"
+                    onclick="toggleSaturnSound()">
+                🔊 SOUND
+            </button>
+
+            <button class="action-btn ref-btn"
+                    onclick="exitSaturnGame()">
+                ↩ BACK TO ARCADE
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- 🏆 GAME RESULT WINDOW -->
+    <div id="saturn-result-overlay"
+         class="saturn-overlay"
+         style="display:none;">
+
+        <div class="saturn-popup">
+
+            <div class="saturn-popup-icon">🏆</div>
+
+            <h2 id="saturn-result-title">
+                JOURNEY COMPLETE!
+            </h2>
+
+            <p>Your Score</p>
+
+            <strong id="saturn-final-score">0</strong>
+
+            <p id="saturn-result-message">
+                An incredible journey through the universe!
+            </p>
+
+            <button class="action-btn ref-btn"
+                    onclick="exitSaturnGame()">
+                🌌 BACK TO ARCADE
+            </button>
+
+        </div>
+
     </div>
 
 </div>
@@ -3592,7 +3719,8 @@ function openArcadeGame(gameId) {
 
     if (
         gameId !== 'cosmic-tunnel' &&
-        gameId !== 'asteroid-rush'
+        gameId !== 'asteroid-rush' &&
+        gameId !== 'planet-defender'
     ) return;
 
     document.querySelectorAll('.page').forEach(page => {
@@ -3622,9 +3750,15 @@ function openArcadeGame(gameId) {
             .classList.add('active');
 
         startPotionRound();
+
+    } else if (gameId === 'planet-defender') {
+
+        document.getElementById('saturn-journey-page')
+            .classList.add('active');
+
+        startSaturnRound();
     }
 }
-
 // بدء جولة جديدة
 async function startCosmicRound() {
     if (cosmicAttemptRequestPending) return;
@@ -6710,6 +6844,4027 @@ window.addEventListener(
     resizePotionScene
 );
 
+
+// =============================================
+// 🪐 SATURN'S COSMIC JOURNEY - GAME VARIABLES
+// =============================================
+
+// GAME STATE
+
+let saturnScene = null;
+let saturnCamera = null;
+let saturnRenderer = null;
+
+let saturnRunning = false;
+let saturnPaused = false;
+let saturnInitialized = false;
+let saturnControlsInitialized = false;
+
+let saturnAnimationId = null;
+let saturnVictoryAnimationId = null;
+let saturnLastTime = 0;
+
+let saturnTime = 120;
+let saturnScore = 0;
+let saturnCrystalsCollected = 0;
+let saturnHearts = 3;
+
+let saturnGameSpeed = 12;
+let saturnPhase = 1;
+
+let saturnAttemptPending = false;
+let saturnAttemptConsumed = false;
+let saturnSessionToken = 0;
+
+// PLAYER
+
+let saturnJumpHeight = 0;
+let saturnJumpVelocity = 0;
+let saturnJumping = false;
+
+let saturnPlayer = null;
+let saturnPlayerTargetX = 0;
+let saturnPlayerTargetY = 0;
+
+let saturnPlayerVelocityX = 0;
+let saturnPlayerVelocityY = 0;
+
+let saturnInvulnerableUntil = 0;
+
+// TRACK
+
+let saturnTrackSegments = [];
+let saturnTrackPosition = 0;
+
+// COSMIC OBJECTS
+
+let saturnVictoryPlanets = [];
+let saturnVictoryFireworks = [];
+
+let saturnPlanets = [];
+let saturnStars = [];
+let saturnNebulaParticles = [];
+let saturnCrystals = [];
+let saturnMeteors = [];
+
+let saturnCollectibles = [];
+
+// INPUT
+
+let saturnTouchStartX = 0;
+let saturnTouchStartY = 0;
+
+let saturnPointerActive = false;
+
+// TIMERS
+let saturnMeteorWarningShown = false;
+let saturnSpawnTimer = 0;
+let saturnCrystalTimer = 0;
+let saturnMeteorTimer = 0;
+
+// AUDIO
+
+let saturnAudioContext = null;
+let saturnSoundEnabled = true;
+
+let saturnMusicOscillators = [];
+let saturnAmbienceNodes = [];
+
+// RESIZE
+
+let saturnResizeHandler = null;
+
+
+// =============================================
+// 🪐 SATURN - 3D SCENE CREATION
+// =============================================
+
+function createSaturnScene() {
+
+    try {
+
+        const container = document.getElementById(
+            'saturn-game-container'
+        );
+
+        const canvas = document.getElementById(
+            'saturn-game-canvas'
+        );
+
+        if (!container || !canvas || typeof THREE === 'undefined') {
+            console.error('Saturn: Three.js or game container missing.');
+            return false;
+        }
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        saturnScene = new THREE.Scene();
+
+        saturnScene.background = new THREE.Color(0x08051d);
+
+        saturnScene.fog = new THREE.FogExp2(
+            0x10082b,
+            0.008
+        );
+
+        // CAMERA
+
+        saturnCamera = new THREE.PerspectiveCamera(
+            65,
+            width / height,
+            0.1,
+            1000
+        );
+
+        saturnCamera.position.set(0, 4.5, 10);
+
+        saturnCamera.lookAt(0, 0, -8);
+
+        // RENDERER
+
+        saturnRenderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            alpha: false
+        });
+
+        saturnRenderer.setPixelRatio(
+            Math.min(window.devicePixelRatio || 1, 2)
+        );
+
+        saturnRenderer.setSize(
+            width,
+            height,
+            false
+        );
+
+        saturnRenderer.outputEncoding =
+            THREE.sRGBEncoding;
+
+        saturnRenderer.toneMapping =
+            THREE.ACESFilmicToneMapping;
+
+        saturnRenderer.toneMappingExposure = 1.25;
+
+        // LIGHTING
+
+        const ambientLight = new THREE.AmbientLight(
+            0x8b78ff,
+            1.1
+        );
+
+        saturnScene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(
+            0xffd49a,
+            2.4
+        );
+
+        sunLight.position.set(7, 10, 5);
+
+        saturnScene.add(sunLight);
+
+        const blueLight = new THREE.PointLight(
+            0x35aaff,
+            2.2,
+            45
+        );
+
+        blueLight.position.set(-7, 3, -8);
+
+        saturnScene.add(blueLight);
+
+        const purpleLight = new THREE.PointLight(
+            0xb34dff,
+            2.5,
+            50
+        );
+
+        purpleLight.position.set(6, -3, -15);
+
+        saturnScene.add(purpleLight);
+
+        // BACKGROUND STARS
+
+        saturnStars = [];
+
+        const starGeometry = new THREE.BufferGeometry();
+
+        const starPositions = [];
+
+        for (let i = 0; i < 1800; i++) {
+
+            const x = (Math.random() - 0.5) * 180;
+
+            const y = (Math.random() - 0.5) * 100;
+
+            const z = -Math.random() * 220;
+
+            starPositions.push(x, y, z);
+        }
+
+        starGeometry.setAttribute(
+            'position',
+            new THREE.Float32BufferAttribute(
+                starPositions,
+                3
+            )
+        );
+
+        const starMaterial = new THREE.PointsMaterial({
+            color: 0xdedbff,
+            size: 0.16,
+            transparent: true,
+            opacity: 0.9,
+            sizeAttenuation: true
+        });
+
+        const starField = new THREE.Points(
+            starGeometry,
+            starMaterial
+        );
+
+        saturnScene.add(starField);
+
+        saturnStars.push(starField);
+
+        // DISTANT GALAXY GLOW
+
+        const galaxyColors = [
+            0x713cff,
+            0x1a9dff,
+            0xd13cff,
+            0xff5ca8
+        ];
+
+        galaxyColors.forEach((color, index) => {
+
+            const glow = new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    1,
+                    24,
+                    24
+                ),
+                new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.12,
+                    depthWrite: false
+                })
+            );
+
+            glow.scale.set(
+                13 + index * 3,
+                7 + index,
+                0.5
+            );
+
+            glow.position.set(
+                (index - 1.5) * 18,
+                12 - index * 5,
+                -65 - index * 18
+            );
+
+            glow.rotation.z = index * 0.35;
+
+            saturnScene.add(glow);
+
+            saturnNebulaParticles.push(glow);
+        });
+
+        // DISTANT PLANETS
+
+        saturnPlanets = [];
+
+        const planetData = [
+            {
+                color: 0x9b55ff,
+                size: 4.5,
+                position: [-19, 9, -48]
+            },
+            {
+                color: 0x27c9ff,
+                size: 3.2,
+                position: [20, -4, -75]
+            },
+            {
+                color: 0xff8c5a,
+                size: 5.5,
+                position: [-25, -12, -110]
+            },
+            {
+                color: 0xe58cff,
+                size: 3.8,
+                position: [27, 12, -135]
+            }
+        ];
+
+        planetData.forEach(data => {
+
+            const planet = new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    data.size,
+                    40,
+                    40
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: data.color,
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    emissive: data.color,
+                    emissiveIntensity: 0.12
+                })
+            );
+
+            planet.position.set(
+                data.position[0],
+                data.position[1],
+                data.position[2]
+            );
+
+            saturnScene.add(planet);
+
+            saturnPlanets.push(planet);
+        });
+
+        // CREATE SATURN CHARACTER
+
+        createSaturnPlayer();
+
+        // RESIZE HANDLER
+
+        if (saturnResizeHandler) {
+
+            window.removeEventListener(
+                'resize',
+                saturnResizeHandler
+            );
+        }
+
+        saturnResizeHandler = resizeSaturnScene;
+
+        window.addEventListener(
+            'resize',
+            saturnResizeHandler
+        );
+
+        saturnInitialized = true;
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            'Saturn scene creation failed:',
+            error
+        );
+
+        return false;
+    }
+}
+
+
+// =============================================
+// 🪐 SATURN CHARACTER
+// =============================================
+
+function createSaturnPlayer() {
+
+    saturnPlayer = new THREE.Group();
+
+    saturnScene.add(saturnPlayer);
+
+    // GOLDEN PLANET BODY
+
+    const bodyGeometry = new THREE.SphereGeometry(
+        0.85,
+        64,
+        64
+    );
+
+    const bodyMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf6bd55,
+        roughness: 0.48,
+        metalness: 0.28,
+        emissive: 0x9b5512,
+        emissiveIntensity: 0.16
+    });
+
+    const body = new THREE.Mesh(
+        bodyGeometry,
+        bodyMaterial
+    );
+
+    saturnPlayer.add(body);
+
+    // GOLDEN SURFACE DETAILS
+
+    const bodyBandMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffdf94,
+        roughness: 0.7,
+        metalness: 0.15
+    });
+
+    for (let i = 0; i < 4; i++) {
+
+        const band = new THREE.Mesh(
+            new THREE.TorusGeometry(
+                0.84,
+                0.012,
+                8,
+                80
+            ),
+            bodyBandMaterial
+        );
+
+        band.rotation.x = Math.PI / 2;
+
+        band.rotation.z = i * 0.12;
+
+        band.position.y = -0.36 + i * 0.23;
+
+        band.scale.set(
+            1,
+            0.95,
+            1
+        );
+
+        saturnPlayer.add(band);
+    }
+
+    // RAINBOW RINGS
+
+    const ringColors = [
+        0xff5b9f,
+        0xffa34d,
+        0xffe36b,
+        0x69edb1,
+        0x45d9ff,
+        0x8a70ff
+    ];
+
+    const ringRadii = [
+        1.05,
+        1.18,
+        1.31,
+        1.44,
+        1.57,
+        1.70
+    ];
+
+    ringColors.forEach((color, index) => {
+
+        const ring = new THREE.Mesh(
+            new THREE.TorusGeometry(
+                ringRadii[index],
+                0.055,
+                12,
+                120
+            ),
+            new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.55,
+                metalness: 0.55,
+                roughness: 0.3
+            })
+        );
+
+        ring.rotation.x = Math.PI / 2.35;
+
+        ring.rotation.y = 0.12;
+
+        ring.rotation.z = 0.08;
+
+        saturnPlayer.add(ring);
+    });
+
+    // OUTER MAGICAL GLOW
+
+    const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(
+            1.03,
+            32,
+            32
+        ),
+        new THREE.MeshBasicMaterial({
+            color: 0xffd36a,
+            transparent: true,
+            opacity: 0.075,
+            side: THREE.BackSide,
+            depthWrite: false
+        })
+    );
+
+    saturnPlayer.add(glow);
+
+    // PLAYER POSITION
+
+    saturnPlayer.position.set(
+        0,
+        0,
+        3
+    );
+
+    saturnPlayer.scale.setScalar(1);
+
+    saturnPlayer.userData.rings = [];
+
+    saturnPlayer.children.forEach(object => {
+
+        if (
+            object.geometry &&
+            object.geometry.type === 'TorusGeometry'
+        ) {
+            saturnPlayer.userData.rings.push(object);
+        }
+    });
+}
+
+
+// =============================================
+// 📐 SATURN RESIZE
+// =============================================
+
+function resizeSaturnScene() {
+
+    if (
+        !saturnRenderer ||
+        !saturnCamera
+    ) return;
+
+    const container = document.getElementById(
+        'saturn-game-container'
+    );
+
+    if (!container) return;
+
+    const width = container.clientWidth;
+
+    const height = container.clientHeight;
+
+    if (!width || !height) return;
+
+    saturnCamera.aspect = width / height;
+
+    saturnCamera.updateProjectionMatrix();
+
+    saturnRenderer.setSize(
+        width,
+        height,
+        false
+    );
+
+    saturnRenderer.setPixelRatio(
+        Math.min(window.devicePixelRatio || 1, 2)
+    );
+}
+
+
+// =============================================
+// 🌌 SATURN - COSMIC TRACK SYSTEM
+// =============================================
+
+
+
+function createSaturnTrack() {
+
+    // =====================================
+    // CLEAN OLD TRACK
+    // =====================================
+
+    saturnTrackSegments.forEach(segment => {
+
+        saturnScene.remove(segment);
+
+        segment.traverse(object => {
+
+            if (object.geometry) {
+                object.geometry.dispose();
+            }
+
+            if (object.material) {
+
+                if (Array.isArray(object.material)) {
+
+                    object.material.forEach(material => {
+                        material.dispose();
+                    });
+
+                } else {
+
+                    object.material.dispose();
+                }
+            }
+        });
+    });
+
+    saturnTrackSegments = [];
+
+    // =====================================
+    // TRACK CONFIGURATION
+    // =====================================
+
+    const segmentLength = 18;
+    const segmentCount = 18;
+
+    const totalTrackLength =
+        segmentLength * segmentCount;
+
+    const curveFrequency =
+        (Math.PI * 2) / totalTrackLength;
+
+    const neonColors = [
+        0x24dfff,
+        0xff4fbc,
+        0xa56bff,
+        0x65ffda
+    ];
+
+    // =====================================
+    // CREATE CONNECTED TRACK SEGMENTS
+    // =====================================
+
+    for (let i = 0; i < segmentCount; i++) {
+
+        const segment = new THREE.Group();
+        segment.userData.hasRamp = false;
+        segment.userData.hasPortal = false;
+        segment.userData.rampTriggered = false;
+        segment.userData.portalTriggered = false;
+
+        const distance = i * segmentLength;
+        const angle = distance * curveFrequency;
+
+        const trackX =
+            2.2 * Math.sin(angle) +
+            0.65 * Math.sin(angle * 2);
+
+        const trackY =
+            0.55 * Math.sin(angle + 0.65) +
+            0.18 * Math.sin(angle * 2);
+
+        const curveX =
+            curveFrequency * (
+                2.2 * Math.cos(angle) +
+                1.3 * Math.cos(angle * 2)
+            );
+
+        const curveY =
+            curveFrequency * (
+                0.55 * Math.cos(angle + 0.65) +
+                0.36 * Math.cos(angle * 2)
+            );
+
+        segment.position.set(
+            trackX,
+            trackY,
+            -distance
+        );
+
+        segment.rotation.y = Math.atan2(
+            -curveX,
+            1
+        );
+
+        segment.rotation.x = Math.atan2(
+            curveY,
+            1
+        );
+
+        saturnScene.add(segment);
+
+        // =====================================
+        // MAIN METALLIC PLATFORM
+        // =====================================
+
+        const platform = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                12,
+                0.32,
+                segmentLength
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x283b68,
+                metalness: 0.88,
+                roughness: 0.22,
+                emissive: 0x111a42,
+                emissiveIntensity: 0.65
+            })
+        );
+
+        segment.add(platform);
+
+        // =====================================
+        // NEON SIDE RAILS
+        // =====================================
+
+        [-5.9, 5.9].forEach((x, index) => {
+
+            const color = index === 0
+                ? 0x24dfff
+                : 0xff4fbc;
+
+            const rail = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.2,
+                    0.38,
+                    segmentLength
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 2,
+                    metalness: 0.6,
+                    roughness: 0.2
+                })
+            );
+
+            rail.position.set(
+                x,
+                0.28,
+                0
+            );
+
+            segment.add(rail);
+
+            // RAIL LIGHT STRIPS
+
+            const strip = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.08,
+                    0.06,
+                    segmentLength
+                ),
+                new THREE.MeshBasicMaterial({
+                    color: 0xffffff
+                })
+            );
+
+            strip.position.set(
+                x,
+                0.5,
+                0
+            );
+
+            segment.add(strip);
+        });
+
+        // =====================================
+        // METALLIC FLOOR PANELS
+        // =====================================
+
+        for (let j = 0; j < 8; j++) {
+
+            const panel = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    11.5,
+                    0.035,
+                    0.1
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x9aaedc,
+                    metalness: 0.95,
+                    roughness: 0.18,
+                    emissive: 0x344c91,
+                    emissiveIntensity: 0.5
+                })
+            );
+
+            panel.position.set(
+                0,
+                0.19,
+                -segmentLength / 2 + j * 2.4
+            );
+
+            segment.add(panel);
+        }
+
+        // =====================================
+        // ENERGY BOOSTER LIGHTS
+        // =====================================
+
+        for (let j = 0; j < 4; j++) {
+
+            const booster = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    1.3,
+                    0.07,
+                    0.45
+                ),
+                new THREE.MeshBasicMaterial({
+                    color: neonColors[
+                        (i + j) % neonColors.length
+                    ]
+                })
+            );
+
+            booster.position.set(
+                -3.6 + j * 2.4,
+                0.24,
+                -7
+            );
+
+            segment.add(booster);
+        }
+
+        // =====================================
+        // SIDE SUPPORT STRUCTURES
+        // =====================================
+
+        if (i % 2 === 0) {
+
+            [-5.5, 5.5].forEach(x => {
+
+                const support = new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        0.3,
+                        3.5,
+                        0.4
+                    ),
+                    new THREE.MeshStandardMaterial({
+                        color: 0x596c9c,
+                        metalness: 0.9,
+                        roughness: 0.25
+                    })
+                );
+
+                support.position.set(
+                    x,
+                    -1.9,
+                    0
+                );
+
+                segment.add(support);
+
+                const supportLight = new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        0.38,
+                        0.12,
+                        0.5
+                    ),
+                    new THREE.MeshBasicMaterial({
+                        color: neonColors[i % neonColors.length]
+                    })
+                );
+
+                supportLight.position.set(
+                    x,
+                    -0.15,
+                    0
+                );
+
+                segment.add(supportLight);
+            });
+        }
+
+        // =====================================
+        // LARGE ENERGY PORTALS
+        // =====================================
+
+        if (i % 4 === 2) {
+
+            const portal = new THREE.Group();
+            segment.userData.hasPortal = true;
+
+            const portalColors = [
+                0xff5d9e,
+                0xffbb55,
+                0x7af0ca,
+                0x55cfff,
+                0xa77aff
+            ];
+
+            portalColors.forEach((color, index) => {
+
+                const ring = new THREE.Mesh(
+                    new THREE.TorusGeometry(
+                        3.1 + index * 0.12,
+                        0.045,
+                        10,
+                        72
+                    ),
+                    new THREE.MeshStandardMaterial({
+                        color: color,
+                        emissive: color,
+                        emissiveIntensity: 1.8,
+                        metalness: 0.4,
+                        roughness: 0.2
+                    })
+                );
+
+                portal.add(ring);
+            });
+
+            portal.position.set(
+                0,
+                1.8,
+                -7
+            );
+
+            segment.add(portal);
+        }
+
+        // =====================================
+        // JUMP RAMPS
+        // =====================================
+
+        if (i % 6 === 4) {
+
+            const ramp = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    7,
+                    0.24,
+                    4.5
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x465b9c,
+                    metalness: 0.85,
+                    roughness: 0.25,
+                    emissive: 0x473cff,
+                    emissiveIntensity: 0.75
+                })
+            );
+
+            segment.userData.hasRamp = true;
+
+            ramp.position.set(
+                0,
+                0.35,
+                -5
+            );
+
+            ramp.rotation.x = -0.13;
+
+            segment.add(ramp);
+
+            // RAMP NEON EDGES
+
+            [-3.45, 3.45].forEach(x => {
+
+                const rampEdge = new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        0.12,
+                        0.3,
+                        4.6
+                    ),
+                    new THREE.MeshBasicMaterial({
+                        color: 0x35eaff
+                    })
+                );
+
+                rampEdge.position.set(
+                    x,
+                    0.48,
+                    -5
+                );
+
+                rampEdge.rotation.x = -0.13;
+
+                segment.add(rampEdge);
+            });
+        }
+
+        // =====================================
+        // FLOATING SIDE ENERGY BEACONS
+        // =====================================
+
+        [-1, 1].forEach(side => {
+
+            const beacon = new THREE.Mesh(
+                new THREE.OctahedronGeometry(
+                    0.38,
+                    1
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x8c6cff,
+                    emissive: 0x7b3dff,
+                    emissiveIntensity: 1.8,
+                    metalness: 0.5,
+                    roughness: 0.2
+                })
+            );
+
+            beacon.position.set(
+                side * 7.2,
+                1.5,
+                -8
+            );
+
+            segment.add(beacon);
+        });
+
+        // =====================================
+        // SAVE SEGMENT
+        // =====================================
+
+        saturnTrackSegments.push(segment);
+    }
+}
+
+
+
+// =============================================
+// 🌀 SPECIAL TRACK SHAPES
+// =============================================
+
+function createSaturnSpecialTrackShape(
+    type,
+    position
+) {
+
+    const special = new THREE.Group();
+
+    special.position.copy(position);
+
+    saturnScene.add(special);
+
+    if (type === 'loop') {
+
+        const loop = new THREE.Mesh(
+            new THREE.TorusGeometry(
+                5,
+                0.32,
+                16,
+                100
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x377dff,
+                metalness: 0.7,
+                roughness: 0.25,
+                emissive: 0x245bff,
+                emissiveIntensity: 1
+            })
+        );
+
+        special.add(loop);
+
+    } else if (type === 'spiral') {
+
+        for (let i = 0; i < 5; i++) {
+
+            const spiral = new THREE.Mesh(
+                new THREE.TorusGeometry(
+                    2 + i * 0.65,
+                    0.12,
+                    10,
+                    80
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: [
+                        0x28dfff,
+                        0x9d5cff,
+                        0xff5cb8
+                    ][i % 3],
+                    emissive: [
+                        0x28dfff,
+                        0x9d5cff,
+                        0xff5cb8
+                    ][i % 3],
+                    emissiveIntensity: 1.2
+                })
+            );
+
+            spiral.rotation.x = Math.PI / 2;
+
+            spiral.position.z = -i * 1.2;
+
+            special.add(spiral);
+        }
+
+    } else if (type === 'jump') {
+
+        const ramp = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                10,
+                0.4,
+                7
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x8a4cff,
+                metalness: 0.65,
+                roughness: 0.25,
+                emissive: 0x542aff,
+                emissiveIntensity: 0.9
+            })
+        );
+
+        ramp.rotation.x = -0.2;
+
+        special.add(ramp);
+    }
+
+    return special;
+}
+
+// =============================================
+// 🪐 SATURN - TOUCH CONTROLS
+// =============================================
+
+function setupSaturnControls() {
+
+    const canvas = document.getElementById(
+        'saturn-game-canvas'
+    );
+
+    if (!canvas) return;
+
+    canvas.addEventListener(
+        'touchstart',
+        function(event) {
+
+            if (!saturnRunning || saturnPaused) return;
+
+            event.preventDefault();
+
+            const touch = event.touches[0];
+
+            saturnPointerActive = true;
+
+            saturnTouchStartX = touch.clientX;
+            saturnTouchStartY = touch.clientY;
+
+        },
+        { passive: false }
+    );
+
+
+    canvas.addEventListener(
+        'touchmove',
+        function(event) {
+
+            if (
+                !saturnRunning ||
+                saturnPaused ||
+                !saturnPointerActive
+            ) return;
+
+            event.preventDefault();
+
+            const touch = event.touches[0];
+
+            const rect = canvas.getBoundingClientRect();
+
+            const deltaX =
+                (touch.clientX - rect.left) / rect.width;
+
+            const deltaY =
+                (touch.clientY - rect.top) / rect.height;
+
+            saturnPlayerTargetX =
+                THREE.MathUtils.clamp(
+                    (deltaX - 0.5) * 10,
+                    -4.5,
+                    4.5
+                );
+
+            saturnPlayerTargetY =
+                THREE.MathUtils.clamp(
+                    (0.5 - deltaY) * 5,
+                    -2,
+                    2
+                );
+
+        },
+        { passive: false }
+    );
+
+
+    canvas.addEventListener(
+        'touchend',
+        function() {
+
+            saturnPointerActive = false;
+
+        }
+    );
+
+
+    canvas.addEventListener(
+        'touchcancel',
+        function() {
+
+            saturnPointerActive = false;
+
+        }
+    );
+}
+
+
+// =============================================
+// 🎮 SATURN - PLAYER MOVEMENT
+// =============================================
+
+
+
+function updateSaturnPlayer(delta) {
+
+    if (!saturnPlayer) return;
+
+    // =====================================
+    // SMOOTH PLAYER CONTROL
+    // =====================================
+
+    const smoothness = Math.min(
+        delta * 5.5,
+        1
+    );
+
+    if (
+        typeof saturnPlayer.userData.controlY !== 'number'
+    ) {
+
+        saturnPlayer.userData.controlY = 0;
+    }
+
+    const previousX = saturnPlayer.position.x;
+
+    const previousY = saturnPlayer.userData.controlY;
+
+    saturnPlayer.position.x += (
+        saturnPlayerTargetX -
+        saturnPlayer.position.x
+    ) * smoothness;
+
+    saturnPlayer.userData.controlY += (
+        saturnPlayerTargetY -
+        saturnPlayer.userData.controlY
+    ) * smoothness;
+
+    // =====================================
+    // PLAYER CONTROL VELOCITY
+    // =====================================
+
+    saturnPlayerVelocityX =
+        (saturnPlayer.position.x - previousX) /
+        Math.max(delta, 0.001);
+
+    saturnPlayerVelocityY =
+        (
+            saturnPlayer.userData.controlY -
+            previousY
+        ) / Math.max(delta, 0.001);
+
+    // =====================================
+    // REAL JUMP PHYSICS
+    // =====================================
+
+    if (saturnJumping) {
+
+        saturnJumpHeight +=
+            saturnJumpVelocity * delta;
+
+        saturnJumpVelocity -=
+            15 * delta;
+
+        if (saturnJumpHeight <= 0) {
+
+            saturnJumpHeight = 0;
+
+            saturnJumpVelocity = 0;
+
+            saturnJumping = false;
+        }
+    }
+
+    // =====================================
+    // STABLE FLOATING MOTION
+    // =====================================
+
+    const floatingOffset =
+        Math.sin(performance.now() * 0.0025) * 0.12;
+
+    saturnPlayer.position.y =
+        saturnPlayer.userData.controlY +
+        saturnJumpHeight +
+        floatingOffset;
+
+    // =====================================
+    // NATURAL PLAYER TILT
+    // =====================================
+
+    const targetTiltZ = THREE.MathUtils.clamp(
+        -saturnPlayerVelocityX * 0.035,
+        -0.45,
+        0.45
+    );
+
+    const targetTiltX = THREE.MathUtils.clamp(
+        saturnPlayerVelocityY * 0.025,
+        -0.25,
+        0.25
+    );
+
+    saturnPlayer.rotation.z += (
+        targetTiltZ - saturnPlayer.rotation.z
+    ) * Math.min(delta * 4, 1);
+
+    saturnPlayer.rotation.x += (
+        targetTiltX - saturnPlayer.rotation.x
+    ) * Math.min(delta * 4, 1);
+
+    // =====================================
+    // RAINBOW RING ROTATION
+    // =====================================
+
+    if (saturnPlayer.userData.rings) {
+
+        saturnPlayer.userData.rings.forEach(
+            (ring, index) => {
+
+                ring.rotation.z +=
+                    delta * (0.12 + index * 0.025);
+            }
+        );
+    }
+}
+
+
+
+// =============================================
+// 🎥 SATURN - CINEMATIC CAMERA FOLLOW
+// =============================================
+
+
+function updateSaturnCamera(delta) {
+
+    if (!saturnCamera || !saturnPlayer) return;
+
+    // =====================================
+    // CAMERA FOLLOW TARGET
+    // =====================================
+
+    const cameraTargetX =
+        saturnPlayer.position.x * 0.42 -
+        saturnPlayerVelocityX * 0.12;
+
+    const cameraTargetY =
+        4.2 + saturnPlayer.position.y * 0.28;
+
+    const cameraTargetZ = 10;
+
+    const smoothness = Math.min(
+        delta * 2.8,
+        1
+    );
+
+    // =====================================
+    // SMOOTH CAMERA MOVEMENT
+    // =====================================
+
+    saturnCamera.position.x += (
+        cameraTargetX - saturnCamera.position.x
+    ) * smoothness;
+
+    saturnCamera.position.y += (
+        cameraTargetY - saturnCamera.position.y
+    ) * smoothness;
+
+    saturnCamera.position.z += (
+        cameraTargetZ - saturnCamera.position.z
+    ) * smoothness;
+
+    // =====================================
+    // CINEMATIC CAMERA FOCUS
+    // =====================================
+
+    const lookTarget = new THREE.Vector3(
+        saturnPlayer.position.x * 0.18,
+        saturnPlayer.position.y * 0.22,
+        -9
+    );
+
+    saturnCamera.lookAt(lookTarget);
+
+    // =====================================
+    // SUBTLE CAMERA BANKING
+    // =====================================
+
+    const targetBank = THREE.MathUtils.clamp(
+        -saturnPlayerVelocityX * 0.012,
+        -0.045,
+        0.045
+    );
+
+    saturnCamera.rotation.z += (
+        targetBank - saturnCamera.rotation.z
+    ) * Math.min(delta * 2, 1);
+}
+
+
+// =============================================
+// 💎 SATURN - CRYSTAL SYSTEM
+// =============================================
+
+
+function createSaturnCrystal(type, x, y, z) {
+
+    const crystal = new THREE.Group();
+
+    const isS = type === 'S';
+
+    const crystalColor = isS
+        ? 0x28eaff
+        : 0xa85cff;
+
+    const material = new THREE.MeshStandardMaterial({
+        color: crystalColor,
+        emissive: crystalColor,
+        emissiveIntensity: 1.5,
+        metalness: 0.35,
+        roughness: 0.2
+    });
+
+    // CRYSTAL BODY
+
+    const geometry = new THREE.OctahedronGeometry(
+        0.42,
+        0
+    );
+
+    const body = new THREE.Mesh(
+        geometry,
+        material
+    );
+
+    body.scale.set(0.8, 1.25, 0.65);
+
+    crystal.add(body);
+
+    // INNER GLOW
+
+    const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.48, 16, 16),
+        new THREE.MeshBasicMaterial({
+            color: crystalColor,
+            transparent: true,
+            opacity: 0.16,
+            depthWrite: false
+        })
+    );
+
+    crystal.add(glow);
+
+    // LETTER S OR H
+
+    const letterCanvas = document.createElement('canvas');
+
+    letterCanvas.width = 128;
+    letterCanvas.height = 128;
+
+    const context = letterCanvas.getContext('2d');
+
+    context.clearRect(0, 0, 128, 128);
+
+    context.font = '900 88px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+
+    context.shadowColor = '#ffffff';
+    context.shadowBlur = 15;
+
+    context.fillStyle = '#ffffff';
+
+    context.fillText(
+        type,
+        64,
+        67
+    );
+
+    const letterTexture = new THREE.CanvasTexture(
+        letterCanvas
+    );
+
+    const letter = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.42, 0.42),
+        new THREE.MeshBasicMaterial({
+            map: letterTexture,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        })
+    );
+
+    letter.position.z = 0.3;
+
+    crystal.add(letter);
+
+    // POSITION AND FLOATING DATA
+
+    crystal.position.set(x, y, z);
+
+    crystal.userData = {
+        type: type,
+        baseY: y,
+        collected: false,
+        rotationSpeed: 1.2 + Math.random() * 1.5,
+        floatOffset: Math.random() * Math.PI * 2
+    };
+
+    saturnScene.add(crystal);
+
+    saturnCrystals.push(crystal);
+
+    return crystal;
+}
+
+
+// =============================================
+// 🌈 SATURN - CRYSTAL GROUPS
+// =============================================
+
+function spawnSaturnCrystalGroup() {
+
+    const centerX = THREE.MathUtils.randFloat(
+        -3.5,
+        3.5
+    );
+
+    const centerY = THREE.MathUtils.randFloat(
+        -1.2,
+        1.5
+    );
+
+    const baseZ = -100;
+
+    const pattern = Math.floor(
+        Math.random() * 4
+    );
+
+    const letters = Math.random() > 0.5
+        ? ['S', 'H', 'S', 'H', 'S']
+        : ['H', 'S', 'H', 'S', 'H'];
+
+    for (let i = 0; i < 5; i++) {
+
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (pattern === 0) {
+
+            offsetX = (i - 2) * 1.5;
+
+        } else if (pattern === 1) {
+
+            offsetY = (i - 2) * 0.8;
+
+        } else if (pattern === 2) {
+
+            offsetX = Math.sin(i * 0.9) * 2;
+            offsetY = Math.cos(i * 0.9) * 1.2;
+
+        } else {
+
+            offsetX = (i % 2 === 0 ? -1 : 1) * 1.5;
+            offsetY = (i - 2) * 0.65;
+        }
+
+        createSaturnCrystal(
+            letters[i],
+            THREE.MathUtils.clamp(
+                centerX + offsetX,
+                -4.5,
+                4.5
+            ),
+            centerY + offsetY,
+            baseZ - i * 1.5
+        );
+    }
+}
+
+
+// =============================================
+// ✨ SATURN - UPDATE CRYSTALS
+// =============================================
+
+function updateSaturnCrystals(delta) {
+
+    if (!saturnPlayer) return;
+
+    saturnCrystals.forEach(crystal => {
+
+        if (crystal.userData.collected) return;
+
+        crystal.position.z += saturnGameSpeed * delta;
+
+        crystal.rotation.y +=
+            crystal.userData.rotationSpeed * delta;
+
+        crystal.rotation.x +=
+            delta * 0.45;
+
+        // STABLE FLOATING MOTION
+
+        crystal.position.y =
+            crystal.userData.baseY +
+            Math.sin(
+                performance.now() * 0.002 +
+                crystal.userData.floatOffset
+            ) * 0.3;
+
+        // COLLECTION DISTANCE
+
+        const dx =
+            crystal.position.x - saturnPlayer.position.x;
+
+        const dy =
+            crystal.position.y - saturnPlayer.position.y;
+
+        const dz =
+            crystal.position.z - saturnPlayer.position.z;
+
+        const distance = Math.sqrt(
+            dx * dx +
+            dy * dy +
+            dz * dz
+        );
+
+        if (distance < 1.45) {
+
+            collectSaturnCrystal(crystal);
+        }
+    });
+
+    // REMOVE PASSED OR COLLECTED CRYSTALS
+
+    for (let i = saturnCrystals.length - 1; i >= 0; i--) {
+
+        const crystal = saturnCrystals[i];
+
+        if (
+            crystal.position.z > 15 ||
+            crystal.userData.collected
+        ) {
+
+            saturnScene.remove(crystal);
+
+            crystal.traverse(object => {
+
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+
+                if (object.material) {
+
+                    if (Array.isArray(object.material)) {
+
+                        object.material.forEach(
+                            material => material.dispose()
+                        );
+
+                    } else {
+
+                        object.material.dispose();
+                    }
+                }
+            });
+
+            saturnCrystals.splice(i, 1);
+        }
+    }
+}
+
+
+// =============================================
+// 💎 SATURN - COLLECT CRYSTAL
+// =============================================
+
+function collectSaturnCrystal(crystal) {
+
+    if (
+        !crystal ||
+        crystal.userData.collected
+    ) return;
+
+    crystal.userData.collected = true;
+
+    saturnCrystalsCollected++;
+
+    saturnScore += 25;
+
+    const counter = document.getElementById(
+        'saturn-crystals'
+    );
+
+    const score = document.getElementById(
+        'saturn-score'
+    );
+
+    if (counter) {
+        counter.textContent = saturnCrystalsCollected;
+    }
+
+    if (score) {
+        score.textContent = saturnScore;
+    }
+
+    saturnPlayCollectSound();
+}
+
+// =============================================
+// ☄️ SATURN - OBSTACLE SYSTEM
+// =============================================
+
+function createSaturnObstacle() {
+
+    const obstacle = new THREE.Group();
+
+    const type = Math.floor(Math.random() * 3);
+
+    const colors = [
+        0xff7b45,
+        0xc16aff,
+        0x45dfff
+    ];
+
+    const color = colors[type];
+
+    if (type === 0) {
+
+        // FLOATING ASTEROID
+
+        const asteroid = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(
+                0.8,
+                1
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x77728e,
+                roughness: 0.9,
+                metalness: 0.15,
+                emissive: 0x33264c,
+                emissiveIntensity: 0.5
+            })
+        );
+
+        obstacle.add(asteroid);
+
+    } else if (type === 1) {
+
+        // ENERGY CRYSTAL BARRIER
+
+        const barrier = new THREE.Mesh(
+            new THREE.OctahedronGeometry(
+                0.95,
+                0
+            ),
+            new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 1.4,
+                transparent: true,
+                opacity: 0.85
+            })
+        );
+
+        barrier.scale.set(1.2, 1.3, 0.7);
+
+        obstacle.add(barrier);
+
+    } else {
+
+        // ROTATING ENERGY RING
+
+        const ring = new THREE.Mesh(
+            new THREE.TorusGeometry(
+                0.9,
+                0.2,
+                12,
+                48
+            ),
+            new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 1.5,
+                metalness: 0.65,
+                roughness: 0.2
+            })
+        );
+
+        obstacle.add(ring);
+    }
+
+    obstacle.position.set(
+        THREE.MathUtils.randFloat(-4, 4),
+        THREE.MathUtils.randFloat(-1.5, 1.5),
+        -105
+    );
+
+    obstacle.userData = {
+        type: 'obstacle',
+        rotationSpeed: THREE.MathUtils.randFloat(0.5, 1.8),
+        hitRadius: 1.25,
+        passed: false
+    };
+
+    saturnScene.add(obstacle);
+
+    saturnMeteors.push(obstacle);
+}
+
+
+// =============================================
+// 🔥 SATURN - METEOR CREATION
+// =============================================
+
+function createSaturnMeteor() {
+
+    const meteor = new THREE.Group();
+
+    const colors = [
+        0xff572e,
+        0xffa52e,
+        0xff3d9a,
+        0xa64dff
+    ];
+
+    const color = colors[
+        Math.floor(Math.random() * colors.length)
+    ];
+
+    // METEOR BODY
+
+    const body = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(
+            THREE.MathUtils.randFloat(0.45, 0.85),
+            1
+        ),
+        new THREE.MeshStandardMaterial({
+            color: 0x6f526b,
+            roughness: 0.9,
+            emissive: color,
+            emissiveIntensity: 0.8
+        })
+    );
+
+    meteor.add(body);
+
+    // FIERY TRAIL
+
+    const trail = new THREE.Mesh(
+        new THREE.ConeGeometry(
+            0.48,
+            2.6,
+            12
+        ),
+        new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.75
+        })
+    );
+
+    trail.rotation.x = -Math.PI / 2;
+
+    trail.position.z = -1.5;
+
+    meteor.add(trail);
+
+    // OUTER GLOW
+
+    const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(
+            1,
+            16,
+            16
+        ),
+        new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.16,
+            depthWrite: false
+        })
+    );
+
+    meteor.add(glow);
+
+    meteor.position.set(
+        THREE.MathUtils.randFloat(-4.5, 4.5),
+        THREE.MathUtils.randFloat(-1.8, 1.8),
+        -95
+    );
+
+    meteor.userData = {
+        type: 'meteor',
+        rotationSpeed: THREE.MathUtils.randFloat(1, 3),
+        hitRadius: 1.2,
+        speedMultiplier: THREE.MathUtils.randFloat(1.1, 1.8)
+    };
+
+    saturnScene.add(meteor);
+
+    saturnMeteors.push(meteor);
+}
+
+
+// =============================================
+// ☄️ SATURN - SPAWN OBSTACLES
+// =============================================
+
+function updateSaturnObstacleSpawning(delta) {
+
+    saturnSpawnTimer += delta;
+
+    if (saturnSpawnTimer >= 2.8) {
+
+        saturnSpawnTimer = 0;
+
+        createSaturnObstacle();
+    }
+
+    // METEOR ATTACK: FINAL 30 SECONDS
+
+    if (saturnPhase === 2) {
+
+        saturnMeteorTimer += delta;
+
+        const meteorInterval = THREE.MathUtils.clamp(
+            0.95 - (30 - saturnTime) * 0.02,
+            0.35,
+            0.95
+        );
+
+        if (saturnMeteorTimer >= meteorInterval) {
+
+            saturnMeteorTimer = 0;
+
+            createSaturnMeteor();
+        }
+    }
+}
+
+
+// =============================================
+// 💥 SATURN - UPDATE OBSTACLES AND METEORS
+// =============================================
+
+function updateSaturnObstacles(delta) {
+
+    if (!saturnPlayer) return;
+
+    for (
+        let i = saturnMeteors.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const obstacle = saturnMeteors[i];
+
+        const isMeteor =
+            obstacle.userData.type === 'meteor';
+
+        const movementSpeed = isMeteor
+            ? saturnGameSpeed *
+              obstacle.userData.speedMultiplier
+            : saturnGameSpeed;
+
+        obstacle.position.z += movementSpeed * delta;
+
+        obstacle.rotation.x +=
+            obstacle.userData.rotationSpeed * delta;
+
+        obstacle.rotation.y +=
+            obstacle.userData.rotationSpeed * 0.7 * delta;
+
+        // COLLISION CHECK
+
+        const dx =
+            obstacle.position.x - saturnPlayer.position.x;
+
+        const dy =
+            obstacle.position.y - saturnPlayer.position.y;
+
+        const dz =
+            obstacle.position.z - saturnPlayer.position.z;
+
+        const distance = Math.sqrt(
+            dx * dx +
+            dy * dy +
+            dz * dz
+        );
+
+        if (
+            distance < obstacle.userData.hitRadius + 0.65 &&
+            !obstacle.userData.passed
+        ) {
+
+            obstacle.userData.passed = true;
+
+            loseSaturnHeart();
+        }
+
+        // REMOVE PASSED OBJECTS
+
+        if (obstacle.position.z > 15) {
+
+            saturnScene.remove(obstacle);
+
+            obstacle.traverse(object => {
+
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+
+                if (object.material) {
+
+                    if (Array.isArray(object.material)) {
+
+                        object.material.forEach(
+                            material => material.dispose()
+                        );
+
+                    } else {
+
+                        object.material.dispose();
+                    }
+                }
+            });
+
+            saturnMeteors.splice(i, 1);
+        }
+    }
+}
+
+
+// =============================================
+// ❤️ SATURN - HEART SYSTEM
+// =============================================
+
+function loseSaturnHeart() {
+
+    if (
+        !saturnRunning ||
+        saturnPaused ||
+        Date.now() < saturnInvulnerableUntil
+    ) return;
+
+    saturnHearts--;
+
+    saturnInvulnerableUntil =
+        Date.now() + 1400;
+
+    saturnPlayCollisionSound();
+
+    const hearts = document.getElementById(
+        'saturn-hearts'
+    );
+
+    if (hearts) {
+
+        hearts.textContent =
+            '❤️'.repeat(Math.max(0, saturnHearts)) +
+            '🖤'.repeat(3 - Math.max(0, saturnHearts));
+    }
+
+    if (saturnHearts <= 0) {
+
+        finishSaturnGame(false);
+    }
+}
+
+// =============================================
+// 🌌 SATURN - COSMIC WORLD MOVEMENT
+// =============================================
+
+
+function updateSaturnWorld(delta) {
+
+    // =====================================
+    // PROGRESSIVE SPEED
+    // =====================================
+
+    const elapsed = 120 - saturnTime;
+
+    saturnGameSpeed = 12 + elapsed * 0.075;
+
+    // =====================================
+    // MOVE TRACK SEGMENTS
+    // =====================================
+
+    saturnTrackSegments.forEach(segment => {
+
+        const previousZ = segment.position.z;
+
+        segment.position.z +=
+            saturnGameSpeed * delta;
+
+        // =================================
+        // REAL JUMP RAMP ACTIVATION
+        // =================================
+
+        if (
+            segment.userData.hasRamp &&
+            !segment.userData.rampTriggered &&
+            previousZ < 8 &&
+            segment.position.z >= 8
+        ) {
+
+            segment.userData.rampTriggered = true;
+
+            if (!saturnJumping) {
+
+                saturnJumping = true;
+
+                saturnJumpVelocity = 7.5;
+
+                saturnPlayTone(
+                    260,
+                    0.22,
+                    'triangle',
+                    0.09
+                );
+
+                saturnPlayTone(
+                    520,
+                    0.35,
+                    'sine',
+                    0.065
+                );
+            }
+        }
+
+        // =================================
+        // REAL ENERGY PORTAL ACTIVATION
+        // =================================
+
+        if (
+            segment.userData.hasPortal &&
+            !segment.userData.portalTriggered &&
+            previousZ < 10 &&
+            segment.position.z >= 10
+        ) {
+
+            segment.userData.portalTriggered = true;
+
+            if (
+                saturnPlayer &&
+                Math.abs(
+                    saturnPlayer.position.x -
+                    segment.position.x
+                ) < 3.2
+            ) {
+
+                saturnScore += 100;
+
+                const scoreElement = document.getElementById(
+                    'saturn-score'
+                );
+
+                if (scoreElement) {
+
+                    scoreElement.textContent =
+                        saturnScore;
+                }
+
+                saturnPlayTone(
+                    660,
+                    0.2,
+                    'sine',
+                    0.08
+                );
+
+                setTimeout(() => {
+
+                    saturnPlayTone(
+                        880,
+                        0.25,
+                        'sine',
+                        0.075
+                    );
+
+                }, 120);
+
+                setTimeout(() => {
+
+                    saturnPlayTone(
+                        1108.73,
+                        0.3,
+                        'sine',
+                        0.07
+                    );
+
+                }, 240);
+            }
+        }
+
+        // =================================
+        // RECYCLE TRACK SEGMENT
+        // =================================
+
+        if (segment.position.z > 25) {
+
+            segment.position.z -= 18 * 18;
+
+            segment.userData.rampTriggered = false;
+
+            segment.userData.portalTriggered = false;
+        }
+    });
+
+    // =====================================
+    // MOVE BACKGROUND STARS
+    // =====================================
+
+    saturnStars.forEach(starField => {
+
+        starField.position.z +=
+            saturnGameSpeed * 0.18 * delta;
+
+        if (starField.position.z > 20) {
+
+            starField.position.z = -180;
+        }
+    });
+
+    // =====================================
+    // MOVE NEBULA GLOWS
+    // =====================================
+
+    saturnNebulaParticles.forEach((nebula, index) => {
+
+        nebula.position.z +=
+            saturnGameSpeed * 0.045 * delta;
+
+        nebula.rotation.z +=
+            delta * (index % 2 === 0 ? 0.012 : -0.012);
+
+        if (nebula.position.z > 10) {
+
+            nebula.position.z -= 220;
+        }
+    });
+
+    // =====================================
+    // ROTATE DISTANT PLANETS
+    // =====================================
+
+    saturnPlanets.forEach((planet, index) => {
+
+        planet.rotation.y +=
+            delta * (0.04 + index * 0.015);
+
+        planet.rotation.x +=
+            delta * 0.012;
+    });
+
+    // =====================================
+    // FLOATING PLAYER RINGS
+    // =====================================
+
+    if (saturnPlayer) {
+
+        saturnPlayer.rotation.y +=
+            delta * 0.18;
+    }
+}
+
+
+
+// =============================================
+// 🛤️ SATURN - TRACK INITIALIZATION
+// =============================================
+
+function initializeSaturnTrack() {
+
+    saturnLastTime = 0;
+
+        if (saturnVictoryAnimationId) {
+
+        cancelAnimationFrame(saturnVictoryAnimationId);
+
+        saturnVictoryAnimationId = null;
+    }
+
+    createSaturnTrack();
+
+    saturnTrackPosition = 0;
+
+    saturnSpawnTimer = 0;
+
+    saturnCrystalTimer = 0;
+
+    saturnMeteorTimer = 0;
+
+    saturnMeteorWarningShown = false;
+
+    // REMOVE OLD CRYSTALS
+
+    saturnCrystals.forEach(crystal => {
+
+        saturnScene.remove(crystal);
+    });
+
+    saturnCrystals = [];
+
+    // REMOVE OLD OBSTACLES
+
+    saturnMeteors.forEach(obstacle => {
+
+        saturnScene.remove(obstacle);
+    });
+
+    saturnMeteors = [];
+
+    // RESET PLAYER POSITION
+
+    if (saturnPlayer) {
+
+        saturnPlayer.position.set(0, 0, 3);
+
+        saturnPlayer.rotation.set(0, 0, 0);
+    }
+
+        // RESET JUMP STATE
+
+    saturnJumpHeight = 0;
+    saturnJumpVelocity = 0;
+    saturnJumping = false;
+
+    if (saturnPlayer) {
+        saturnPlayer.userData.controlY = 0;
+    }
+
+    saturnPlayerTargetX = 0;
+    saturnPlayerTargetY = 0;
+
+    saturnPlayerVelocityX = 0;
+    saturnPlayerVelocityY = 0;
+
+    saturnGameSpeed = 12;
+
+    saturnPhase = 1;
+}
+
+// =============================================
+// ⏱️ SATURN - MAIN GAME LOOP
+// =============================================
+
+function animateSaturn(timestamp) {
+
+    if (!saturnRunning || saturnPaused) return;
+
+    saturnAnimationId = requestAnimationFrame(
+        animateSaturn
+    );
+
+    if (!saturnLastTime) {
+        saturnLastTime = timestamp;
+    }
+
+    const delta = Math.min(
+        (timestamp - saturnLastTime) / 1000,
+        0.05
+    );
+
+    saturnLastTime = timestamp;
+
+    if (delta <= 0) return;
+
+    // UPDATE GAME TIME
+
+    saturnTime = Math.max(
+        0,
+        saturnTime - delta
+    );
+
+    // UPDATE WORLD
+
+    updateSaturnWorld(delta);
+
+    // UPDATE PLAYER
+
+    updateSaturnPlayer(delta);
+
+    // UPDATE CAMERA
+
+    updateSaturnCamera(delta);
+
+    // UPDATE CRYSTALS
+
+    updateSaturnCrystals(delta);
+
+    // SPAWN OBSTACLES AND METEORS
+
+    updateSaturnObstacleSpawning(delta);
+
+    // UPDATE OBSTACLES
+
+    updateSaturnObstacles(delta);
+
+    // SPAWN CRYSTALS
+
+    saturnCrystalTimer += delta;
+
+    if (saturnCrystalTimer >= 3.2) {
+
+        saturnCrystalTimer = 0;
+
+        spawnSaturnCrystalGroup();
+    }
+
+    // UPDATE HUD
+
+    const timerElement = document.getElementById(
+        'saturn-timer'
+    );
+
+    if (timerElement) {
+
+        timerElement.textContent = Math.ceil(
+            saturnTime
+        );
+    }
+
+    // CHECK PHASE TRANSITION
+
+    if (
+        saturnTime <= 30 &&
+        !saturnMeteorWarningShown
+    ) {
+
+        saturnPhase = 2;
+
+        saturnMeteorWarningShown = true;
+
+        saturnMeteorTimer = 0;
+
+        showSaturnMeteorWarning();
+
+        updateSaturnMusic();
+    }
+
+    // FINISH AT ZERO
+
+    if (saturnTime <= 0) {
+
+        finishSaturnGame(true);
+
+        return;
+    }
+
+    // RENDER
+
+    if (saturnRenderer && saturnScene && saturnCamera) {
+
+        saturnRenderer.render(
+            saturnScene,
+            saturnCamera
+        );
+    }
+}
+
+
+// =============================================
+// ☄️ SATURN - METEOR PHASE WARNING
+// =============================================
+
+function showSaturnMeteorWarning() {
+
+    saturnPlayMeteorWarningSound();
+    const container = document.getElementById(
+        'saturn-game-container'
+    );
+
+    if (!container) return;
+
+    const warning = document.createElement('div');
+
+    warning.id = 'saturn-meteor-warning';
+
+    warning.textContent = '☄️ METEOR STORM INCOMING!';
+
+    warning.style.cssText = `
+        position: absolute;
+        top: 18%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        width: 90%;
+        padding: 13px 8px;
+        border: 1px solid rgba(255, 120, 65, 0.9);
+        border-radius: 13px;
+        background: rgba(65, 12, 32, 0.9);
+        color: #ffd18b;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        text-align: center;
+        text-shadow: 0 0 12px #ff6b35;
+        box-shadow: 0 0 22px rgba(255, 75, 35, 0.55);
+        pointer-events: none;
+    `;
+
+    container.appendChild(warning);
+
+    setTimeout(() => {
+
+        warning.remove();
+
+    }, 2600);
+}
+
+// =============================================
+// 🔊 SATURN - AUDIO ENGINE
+// =============================================
+
+function getSaturnAudioContext() {
+
+    if (!saturnAudioContext) {
+
+        const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContextClass) return null;
+
+        saturnAudioContext = new AudioContextClass();
+    }
+
+    if (saturnAudioContext.state === 'suspended') {
+
+        saturnAudioContext.resume().catch(error => {
+            console.warn('Saturn audio could not resume:', error);
+        });
+    }
+
+    return saturnAudioContext;
+}
+
+
+// =============================================
+// 🎵 SATURN - PLAY TONE
+// =============================================
+
+function saturnPlayTone(
+    frequency,
+    duration,
+    type = 'sine',
+    volume = 0.08
+) {
+
+    if (!saturnSoundEnabled) return;
+
+    const audio = getSaturnAudioContext();
+
+    if (!audio) return;
+
+    const oscillator = audio.createOscillator();
+
+    const gain = audio.createGain();
+
+    oscillator.type = type;
+
+    oscillator.frequency.setValueAtTime(
+        frequency,
+        audio.currentTime
+    );
+
+    gain.gain.setValueAtTime(
+        0.0001,
+        audio.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        volume,
+        audio.currentTime + 0.04
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audio.currentTime + duration
+    );
+
+    oscillator.connect(gain);
+
+    gain.connect(audio.destination);
+
+    oscillator.start();
+
+    oscillator.stop(
+        audio.currentTime + duration + 0.05
+    );
+}
+
+
+// =============================================
+// 🌌 SATURN - AMBIENT MUSIC
+// =============================================
+
+
+
+function saturnStartMusic() {
+
+    if (!saturnSoundEnabled) return;
+
+    const audio = getSaturnAudioContext();
+
+    if (!audio) return;
+
+    saturnStopMusic();
+
+    // =====================================
+    // MASTER MUSIC CHANNEL
+    // =====================================
+
+    const master = audio.createGain();
+
+    master.gain.value = 0.045;
+
+    master.connect(audio.destination);
+
+    saturnAmbienceNodes.push(master);
+
+    // =====================================
+    // COSMIC MUSIC LAYERS
+    // =====================================
+
+    const layers = [
+        {
+            frequency: 55,
+            type: 'sine',
+            volume: 0.30,
+            detune: -3
+        },
+        {
+            frequency: 82.41,
+            type: 'triangle',
+            volume: 0.13,
+            detune: 2
+        },
+        {
+            frequency: 110,
+            type: 'sine',
+            volume: 0.12,
+            detune: -2
+        },
+        {
+            frequency: 164.81,
+            type: 'triangle',
+            volume: 0.09,
+            detune: 3
+        },
+        {
+            frequency: 220,
+            type: 'sine',
+            volume: 0.055,
+            detune: -4
+        },
+        {
+            frequency: 329.63,
+            type: 'sine',
+            volume: 0.035,
+            detune: 4
+        }
+    ];
+
+    layers.forEach(layer => {
+
+        const oscillator = audio.createOscillator();
+
+        const gain = audio.createGain();
+
+        oscillator.type = layer.type;
+
+        oscillator.frequency.value = layer.frequency;
+
+        oscillator.detune.value = layer.detune;
+
+        gain.gain.value = layer.volume;
+
+        oscillator.connect(gain);
+
+        gain.connect(master);
+
+        oscillator.start();
+
+        saturnMusicOscillators.push({
+            oscillator: oscillator,
+            gain: gain,
+            baseVolume: layer.volume
+        });
+    });
+
+    // =====================================
+    // MELODIC SYNTH LAYER
+    // =====================================
+
+    const melody = [
+        261.63,
+        329.63,
+        392.00,
+        493.88,
+        392.00,
+        329.63,
+        293.66,
+        349.23
+    ];
+
+    let melodyIndex = 0;
+
+    const melodyOscillator = audio.createOscillator();
+
+    const melodyGain = audio.createGain();
+
+    melodyOscillator.type = 'sine';
+
+    melodyOscillator.frequency.value = melody[0];
+
+    melodyGain.gain.value = 0;
+
+    melodyOscillator.connect(melodyGain);
+
+    melodyGain.connect(master);
+
+    melodyOscillator.start();
+
+    saturnMusicOscillators.push({
+        oscillator: melodyOscillator,
+        gain: melodyGain,
+        baseVolume: 0.025
+    });
+
+    melodyGain.gain.setTargetAtTime(
+        0.025,
+        audio.currentTime,
+        0.8
+    );
+
+    // =====================================
+    // PULSING COSMIC RHYTHM
+    // =====================================
+
+    const pulseOscillator = audio.createOscillator();
+
+    const pulseGain = audio.createGain();
+
+    pulseOscillator.type = 'sine';
+
+    pulseOscillator.frequency.value = 55;
+
+    pulseGain.gain.value = 0.025;
+
+    pulseOscillator.connect(pulseGain);
+
+    pulseGain.connect(master);
+
+    pulseOscillator.start();
+
+    saturnMusicOscillators.push({
+        oscillator: pulseOscillator,
+        gain: pulseGain,
+        baseVolume: 0.025
+    });
+
+    let pulseStep = 0;
+
+    // =====================================
+    // MUSIC SEQUENCER
+    // =====================================
+
+    const sequenceTimer = setInterval(() => {
+
+        if (
+            !saturnRunning ||
+            saturnPaused ||
+            !saturnSoundEnabled ||
+            !saturnAudioContext ||
+            saturnAudioContext.state !== 'running'
+        ) return;
+
+        const now = audio.currentTime;
+
+        melodyIndex = (melodyIndex + 1) % melody.length;
+
+        melodyOscillator.frequency.setTargetAtTime(
+            melody[melodyIndex],
+            now,
+            0.12
+        );
+
+        melodyGain.gain.cancelScheduledValues(now);
+
+        melodyGain.gain.setTargetAtTime(
+            0.025,
+            now,
+            0.08
+        );
+
+        melodyGain.gain.setTargetAtTime(
+            0.003,
+            now + 0.35,
+            0.15
+        );
+
+        pulseStep++;
+
+        const meteorIntensity = saturnPhase === 2
+            ? 0.045
+            : 0.025;
+
+        pulseGain.gain.setTargetAtTime(
+            pulseStep % 2 === 0
+                ? meteorIntensity
+                : meteorIntensity * 0.35,
+            now,
+            0.08
+        );
+
+    }, 520);
+
+    // SAVE TIMER FOR CLEANUP
+
+    saturnAmbienceNodes.push({
+        disconnect: () => {
+            clearInterval(sequenceTimer);
+        }
+    });
+
+    // =====================================
+    // APPLY CURRENT GAME PHASE
+    // =====================================
+
+    updateSaturnMusic();
+}
+
+
+
+// =============================================
+// 🎼 SATURN - MUSIC INTENSITY
+// =============================================
+
+
+function updateSaturnMusic() {
+
+    if (!saturnSoundEnabled) return;
+
+    const audio = saturnAudioContext;
+
+    if (!audio) return;
+
+    // =====================================
+    // PHASE INTENSITY
+    // =====================================
+
+    const isMeteorPhase =
+        saturnPhase === 2;
+
+    const intensity = isMeteorPhase
+        ? 0.065
+        : 0.045;
+
+    const frequencyMultiplier = isMeteorPhase
+        ? 1.08
+        : 1;
+
+    // =====================================
+    // MASTER VOLUME TRANSITION
+    // =====================================
+
+    saturnAmbienceNodes.forEach(master => {
+
+        master.gain.setTargetAtTime(
+            intensity,
+            audio.currentTime,
+            1.5
+        );
+    });
+
+    // =====================================
+    // MUSIC LAYER EVOLUTION
+    // =====================================
+
+    saturnMusicOscillators.forEach((item, index) => {
+
+        const baseFrequencies = [
+            55,
+            82.41,
+            110,
+            164.81,
+            220,
+            329.63
+        ];
+
+        const baseFrequency =
+            baseFrequencies[index];
+
+        if (!baseFrequency) return;
+
+        item.oscillator.frequency.setTargetAtTime(
+            baseFrequency * frequencyMultiplier,
+            audio.currentTime,
+            1.2
+        );
+
+        const volumeMultiplier =
+            isMeteorPhase
+                ? (index >= 3 ? 1.65 : 1.35)
+                : 1;
+
+        item.gain.gain.setTargetAtTime(
+            item.baseVolume * volumeMultiplier,
+            audio.currentTime,
+            1.5
+        );
+    });
+}
+
+
+
+// =============================================
+// 🔇 SATURN - STOP MUSIC
+// =============================================
+
+function saturnStopMusic() {
+
+    saturnMusicOscillators.forEach(item => {
+
+        try {
+            item.oscillator.stop();
+        } catch (error) {}
+
+        item.oscillator.disconnect();
+
+        item.gain.disconnect();
+    });
+
+    saturnMusicOscillators = [];
+
+    saturnAmbienceNodes.forEach(node => {
+        node.disconnect();
+    });
+
+    saturnAmbienceNodes = [];
+}
+
+
+// =============================================
+// 💎 SATURN - COLLECT SOUND
+// =============================================
+
+
+function saturnPlayCollectSound() {
+
+    if (!saturnSoundEnabled) return;
+
+    const notes = [
+        660,
+        880,
+        1108.73,
+        1320
+    ];
+
+    notes.forEach((frequency, index) => {
+
+        setTimeout(() => {
+
+            saturnPlayTone(
+                frequency,
+                0.22,
+                'sine',
+                0.075
+            );
+
+        }, index * 65);
+    });
+}
+
+
+
+// =============================================
+// 💥 SATURN - COLLISION SOUND
+// =============================================
+
+
+function saturnPlayCollisionSound() {
+
+    if (!saturnSoundEnabled) return;
+
+    saturnPlayTone(
+        95,
+        0.5,
+        'sawtooth',
+        0.12
+    );
+
+    saturnPlayTone(
+        58,
+        0.65,
+        'triangle',
+        0.11
+    );
+
+    setTimeout(() => {
+
+        saturnPlayTone(
+            145,
+            0.22,
+            'sawtooth',
+            0.045
+        );
+
+    }, 100);
+}
+
+
+
+// =============================================
+// 🏆 SATURN - VICTORY SOUND
+// =============================================
+
+
+function saturnPlayVictorySound() {
+
+    if (!saturnSoundEnabled) return;
+
+    const melody = [
+        523.25,
+        659.25,
+        783.99,
+        987.77,
+        1174.66,
+        1567.98
+    ];
+
+    melody.forEach((frequency, index) => {
+
+        setTimeout(() => {
+
+            saturnPlayTone(
+                frequency,
+                0.8,
+                'sine',
+                0.09
+            );
+
+        }, index * 190);
+    });
+
+    setTimeout(() => {
+
+        saturnPlayTone(
+            1046.5,
+            1.1,
+            'triangle',
+            0.055
+        );
+
+    }, 1250);
+}
+
+
+function saturnPlayMeteorWarningSound() {
+
+    if (!saturnSoundEnabled) return;
+
+    const warningNotes = [
+        220,
+        165,
+        110
+    ];
+
+    warningNotes.forEach((frequency, index) => {
+
+        setTimeout(() => {
+
+            saturnPlayTone(
+                frequency,
+                0.38,
+                'sawtooth',
+                0.085
+            );
+
+        }, index * 260);
+    });
+
+    setTimeout(() => {
+
+        saturnPlayTone(
+            440,
+            0.7,
+            'triangle',
+            0.09
+        );
+
+    }, 850);
+}
+
+
+// =============================================
+// 🔊 SATURN - SOUND BUTTON
+// =============================================
+
+function toggleSaturnSound() {
+
+    saturnSoundEnabled = !saturnSoundEnabled;
+
+    const button = document.getElementById(
+        'saturn-sound-btn'
+    );
+
+    if (button) {
+
+        button.textContent = saturnSoundEnabled
+            ? '🔊'
+            : '🔇';
+    }
+
+    if (saturnSoundEnabled) {
+
+        getSaturnAudioContext();
+
+        if (saturnRunning && !saturnPaused) {
+            saturnStartMusic();
+        }
+
+    } else {
+
+        saturnStopMusic();
+    }
+}
+
+// =============================================
+// 🪐 SATURN - START NEW ROUND
+// =============================================
+
+async function startSaturnRound() {
+
+    if (saturnAttemptPending) return;
+
+    saturnAttemptPending = true;
+    saturnAttemptConsumed = false;
+
+    const sessionToken = ++saturnSessionToken;
+
+    try {
+
+        const response = await fetch(
+            '/api/arcade/consume',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Telegram-Init-Data': tg.initData
+                },
+
+                body: JSON.stringify({
+                    game_id: 'planet-defender'
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (sessionToken !== saturnSessionToken) return;
+
+        if (!response.ok || !data.success) {
+
+            await loadArcadeAttempts();
+
+            alert(
+                'No attempts left! Please try again after the cooldown.'
+            );
+
+            exitSaturnGame();
+
+            return;
+        }
+
+        saturnAttemptConsumed = true;
+
+        loadArcadeAttempts();
+
+    } catch (error) {
+
+        console.error(
+            'Saturn attempt check failed:',
+            error
+        );
+
+        alert(
+            'Could not verify attempts. Please try again.'
+        );
+
+        return;
+
+    } finally {
+
+        saturnAttemptPending = false;
+    }
+
+    if (sessionToken !== saturnSessionToken) return;
+
+    // CREATE 3D SCENE
+
+    if (!saturnInitialized) {
+
+        const success = createSaturnScene();
+
+        if (!success) {
+
+            alert(
+                'Saturn game engine could not load. Please refresh the app.'
+            );
+
+            return;
+        }
+    }
+
+    // INITIALIZE TOUCH CONTROLS ONCE
+
+    if (!saturnControlsInitialized) {
+
+        setupSaturnControls();
+
+        saturnControlsInitialized = true;
+    }
+
+    // STOP PREVIOUS ANIMATION
+
+    if (saturnAnimationId) {
+
+        cancelAnimationFrame(saturnAnimationId);
+
+        saturnAnimationId = null;
+    }
+
+    // RESET GAME DATA
+
+    saturnTime = 120;
+
+    saturnScore = 0;
+
+    saturnCrystalsCollected = 0;
+
+    saturnHearts = 3;
+
+    saturnLastTime = 0;
+
+    saturnInvulnerableUntil = 0;
+
+    saturnAttemptConsumed = true;
+
+    saturnPaused = false;
+
+    saturnRunning = true;
+
+    saturnPointerActive = false;
+
+    // RESET WORLD
+
+    initializeSaturnTrack();
+
+    // RESET HUD
+
+    const scoreElement = document.getElementById(
+        'saturn-score'
+    );
+
+    const timerElement = document.getElementById(
+        'saturn-timer'
+    );
+
+    const crystalsElement = document.getElementById(
+        'saturn-crystals'
+    );
+
+    const heartsElement = document.getElementById(
+        'saturn-hearts'
+    );
+
+    if (scoreElement) {
+        scoreElement.textContent = '0';
+    }
+
+    if (timerElement) {
+        timerElement.textContent = '120';
+    }
+
+    if (crystalsElement) {
+        crystalsElement.textContent = '0';
+    }
+
+    if (heartsElement) {
+        heartsElement.textContent = '❤️❤️❤️';
+    }
+
+    // RESET BUTTONS
+
+    const pauseButton = document.getElementById(
+        'saturn-pause-btn'
+    );
+
+    if (pauseButton) {
+        pauseButton.textContent = '⏸️';
+    }
+
+    // HIDE OVERLAYS
+
+    const pauseOverlay = document.getElementById(
+        'saturn-pause-overlay'
+    );
+
+    const resultOverlay = document.getElementById(
+        'saturn-result-overlay'
+    );
+
+    const loading = document.getElementById(
+        'saturn-loading'
+    );
+
+    if (pauseOverlay) {
+        pauseOverlay.style.display = 'none';
+    }
+
+    if (resultOverlay) {
+        resultOverlay.style.display = 'none';
+    }
+
+    if (loading) {
+        loading.style.display = 'none';
+    }
+
+    // RESET CAMERA
+
+    saturnCamera.position.set(0, 4.5, 10);
+
+    saturnCamera.lookAt(0, 0, -8);
+
+    // START SOUND
+
+    if (saturnSoundEnabled) {
+
+        getSaturnAudioContext();
+
+        saturnStartMusic();
+    }
+
+    // FIRST RENDER
+
+    saturnRenderer.render(
+        saturnScene,
+        saturnCamera
+    );
+
+    // START GAME LOOP
+
+    saturnAnimationId = requestAnimationFrame(
+        animateSaturn
+    );
+}
+
+// =============================================
+// ⏸️ SATURN - PAUSE GAME
+// =============================================
+
+function pauseSaturnGame() {
+
+    if (!saturnRunning || saturnPaused) return;
+
+    saturnPaused = true;
+
+    if (saturnAnimationId) {
+
+        cancelAnimationFrame(saturnAnimationId);
+
+        saturnAnimationId = null;
+    }
+
+    saturnStopMusic();
+
+    const overlay = document.getElementById(
+        'saturn-pause-overlay'
+    );
+
+    if (overlay) {
+        overlay.style.display = 'flex';
+    }
+
+    const button = document.getElementById(
+        'saturn-pause-btn'
+    );
+
+    if (button) {
+        button.textContent = '▶️';
+    }
+}
+
+
+// =============================================
+// ▶️ SATURN - RESUME GAME
+// =============================================
+
+function resumeSaturnGame() {
+
+    if (!saturnRunning || !saturnPaused) return;
+
+    saturnPaused = false;
+
+    saturnLastTime = 0;
+
+    const overlay = document.getElementById(
+        'saturn-pause-overlay'
+    );
+
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+
+    const button = document.getElementById(
+        'saturn-pause-btn'
+    );
+
+    if (button) {
+        button.textContent = '⏸️';
+    }
+
+    if (saturnSoundEnabled) {
+        saturnStartMusic();
+    }
+
+    saturnAnimationId = requestAnimationFrame(
+        animateSaturn
+    );
+}
+
+
+// =============================================
+// 🏆 SATURN - FINISH GAME
+// =============================================
+
+function finishSaturnGame(success) {
+
+    if (!saturnRunning) return;
+
+    saturnRunning = false;
+
+    saturnPaused = false;
+
+    saturnPointerActive = false;
+
+    if (saturnAnimationId) {
+
+        cancelAnimationFrame(saturnAnimationId);
+
+        saturnAnimationId = null;
+    }
+
+    saturnStopMusic();
+
+    const pauseOverlay = document.getElementById(
+        'saturn-pause-overlay'
+    );
+
+    if (pauseOverlay) {
+        pauseOverlay.style.display = 'none';
+    }
+
+    const pauseButton = document.getElementById(
+        'saturn-pause-btn'
+    );
+
+    if (pauseButton) {
+        pauseButton.textContent = '⏸️';
+    }
+
+    if (success) {
+
+        saturnPlayVictorySound();
+
+        startSaturnVictorySequence();
+
+    } else {
+
+        saturnPlayCollisionSound();
+
+        showSaturnResult(false);
+    }
+}
+
+// =============================================
+// ↩️ SATURN - EXIT TO ARCADE
+// =============================================
+
+function exitSaturnGame() {
+
+    if (saturnVictoryAnimationId) {
+
+        cancelAnimationFrame(saturnVictoryAnimationId);
+
+        saturnVictoryAnimationId = null;
+    }
+
+// CLEAN VICTORY PLANETS
+
+saturnVictoryPlanets.forEach(planet => {
+
+    saturnScene.remove(planet);
+
+    planet.traverse(object => {
+
+        if (object.geometry) {
+            object.geometry.dispose();
+        }
+
+        if (object.material) {
+
+            if (Array.isArray(object.material)) {
+
+                object.material.forEach(material => {
+                    material.dispose();
+                });
+
+            } else {
+
+                object.material.dispose();
+            }
+        }
+    });
+});
+
+saturnVictoryPlanets = [];
+
+
+// CLEAN VICTORY FIREWORKS
+
+saturnVictoryFireworks.forEach(firework => {
+
+    saturnScene.remove(firework.object);
+
+    if (firework.object.children.length > 0) {
+
+        firework.object.children[0].geometry.dispose();
+    }
+
+    firework.object.children.forEach(particle => {
+
+        particle.material.dispose();
+    });
+});
+
+saturnVictoryFireworks = [];
+
+    saturnSessionToken++;
+
+    saturnRunning = false;
+
+    saturnPaused = false;
+
+    saturnPointerActive = false;
+
+    if (saturnAnimationId) {
+
+        cancelAnimationFrame(saturnAnimationId);
+
+        saturnAnimationId = null;
+    }
+
+    saturnStopMusic();
+
+    const pauseOverlay = document.getElementById(
+        'saturn-pause-overlay'
+    );
+
+    const resultOverlay = document.getElementById(
+        'saturn-result-overlay'
+    );
+
+    const loading = document.getElementById(
+        'saturn-loading'
+    );
+
+    const warning = document.getElementById(
+        'saturn-meteor-warning'
+    );
+
+    if (pauseOverlay) {
+        pauseOverlay.style.display = 'none';
+    }
+
+    if (resultOverlay) {
+        resultOverlay.style.display = 'none';
+    }
+
+    if (loading) {
+        loading.style.display = 'flex';
+    }
+
+    if (warning) {
+        warning.remove();
+    }
+
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    const arcadePage = document.getElementById('arcade-page');
+
+    const arcadeTab = document.getElementById('tab-arcade');
+
+    if (arcadePage) {
+        arcadePage.classList.add('active');
+    }
+
+    if (arcadeTab) {
+        arcadeTab.classList.add('active');
+    }
+
+    loadArcadeAttempts();
+}
+
+// =============================================
+// 🌟 SATURN - VICTORY PLANETS
+// =============================================
+
+function createSaturnVictoryPlanets() {
+
+    const planets = [];
+
+    const planetData = [
+        { color: 0x35dfff, size: 1.15, x: -4.2 },
+        { color: 0xb16aff, size: 1.45, x: -2.1 },
+        { color: 0xffa45b, size: 1.2, x: 0 },
+        { color: 0x62e6b5, size: 1.5, x: 2.2 },
+        { color: 0xff70b8, size: 1.1, x: 4.3 }
+    ];
+
+    planetData.forEach((data, index) => {
+
+        const planet = new THREE.Group();
+
+        const body = new THREE.Mesh(
+            new THREE.SphereGeometry(
+                data.size,
+                40,
+                40
+            ),
+            new THREE.MeshStandardMaterial({
+                color: data.color,
+                roughness: 0.55,
+                metalness: 0.2,
+                emissive: data.color,
+                emissiveIntensity: 0.35
+            })
+        );
+
+        planet.add(body);
+
+        // PLANET RING
+
+        if (index === 1 || index === 3) {
+
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(
+                    data.size * 1.5,
+                    0.07,
+                    10,
+                    80
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0xffd17a,
+                    emissive: 0xffa94d,
+                    emissiveIntensity: 0.8
+                })
+            );
+
+            ring.rotation.x = Math.PI / 2.5;
+
+            planet.add(ring);
+        }
+
+        planet.position.set(
+            data.x,
+            -1.4,
+            -12
+        );
+
+        saturnScene.add(planet);
+
+        planets.push(planet);
+    });
+
+    return planets;
+}
+
+
+// =============================================
+// 🎆 SATURN - COSMIC FIREWORKS
+// =============================================
+
+function createSaturnFirework() {
+
+    const colors = [
+        0x39eaff,
+        0xff72c6,
+        0xffd36b,
+        0xa77aff,
+        0x65f0bd
+    ];
+
+    const color = colors[
+        Math.floor(Math.random() * colors.length)
+    ];
+
+    const particles = new THREE.Group();
+
+    const particleGeometry = new THREE.SphereGeometry(
+        0.075,
+        8,
+        8
+    );
+
+    const particleMaterial = new THREE.MeshBasicMaterial({
+        color: color
+    });
+
+    const centerX = THREE.MathUtils.randFloat(-7, 7);
+    const centerY = THREE.MathUtils.randFloat(-1, 6);
+    const centerZ = THREE.MathUtils.randFloat(-17, -8);
+
+    for (let i = 0; i < 32; i++) {
+
+        const particle = new THREE.Mesh(
+            particleGeometry,
+            particleMaterial.clone()
+        );
+
+        particle.position.set(
+            centerX,
+            centerY,
+            centerZ
+        );
+
+        const angle = Math.random() * Math.PI * 2;
+
+        const verticalAngle = Math.random() * Math.PI * 2;
+
+        const speed = THREE.MathUtils.randFloat(2, 6);
+
+        particle.userData.velocity = new THREE.Vector3(
+            Math.cos(angle) * Math.cos(verticalAngle) * speed,
+            Math.sin(verticalAngle) * speed,
+            Math.sin(angle) * Math.cos(verticalAngle) * speed
+        );
+
+        particles.add(particle);
+    }
+
+    saturnScene.add(particles);
+
+    return particles;
+}
+
+
+// =============================================
+// 🎇 SATURN - VICTORY CELEBRATION
+// =============================================
+
+function startSaturnVictorySequence() {
+
+    if (!saturnPlayer) {
+
+        showSaturnResult(true);
+
+        return;
+    }
+
+    // RESET VICTORY OBJECTS
+
+    saturnVictoryPlanets = createSaturnVictoryPlanets();
+
+    saturnVictoryFireworks = [];
+
+    const startTime = performance.now();
+
+    const startPosition = saturnPlayer.position.clone();
+
+    const targetPosition = new THREE.Vector3(
+        0,
+        -1.4,
+        -7
+    );
+
+    function victoryFrame(timestamp) {
+
+        if (!saturnScene || !saturnRenderer) return;
+
+        const elapsed = (timestamp - startTime) / 1000;
+
+        const progress = Math.min(elapsed / 4, 1);
+
+        const smoothProgress =
+            progress * progress * (3 - 2 * progress);
+
+        // SATURN APPROACHES THE PLANETS
+
+        saturnPlayer.position.lerpVectors(
+            startPosition,
+            targetPosition,
+            smoothProgress
+        );
+
+        saturnPlayer.rotation.z *= 0.94;
+        saturnPlayer.rotation.x *= 0.94;
+        saturnPlayer.rotation.y += 0.012;
+
+        // PLANETS GENTLY FLOAT
+
+        saturnVictoryPlanets.forEach((planet, index) => {
+
+            planet.position.y =
+                -1.4 +
+                Math.sin(timestamp * 0.0015 + index) * 0.18;
+
+            planet.rotation.y += 0.004;
+        });
+
+        // CAMERA MOVEMENT
+
+        saturnCamera.position.x +=
+            (0 - saturnCamera.position.x) * 0.025;
+
+        saturnCamera.position.y +=
+            (2.8 - saturnCamera.position.y) * 0.025;
+
+        saturnCamera.position.z +=
+            (12 - saturnCamera.position.z) * 0.025;
+
+        saturnCamera.lookAt(0, -0.5, -9);
+
+        // FIREWORKS
+
+        if (elapsed < 4.5 && Math.random() < 0.18) {
+
+            saturnVictoryFireworks.push({
+                object: createSaturnFirework(),
+                age: 0
+            });
+        }
+
+        saturnVictoryFireworks.forEach(firework => {
+
+            firework.age += 0.016;
+
+            firework.object.children.forEach(particle => {
+
+                const velocity = particle.userData.velocity;
+
+                particle.position.addScaledVector(
+                    velocity,
+                    0.016
+                );
+
+                velocity.y -= 0.035;
+
+                particle.material.opacity = Math.max(
+                    0,
+                    1 - firework.age / 1.8
+                );
+
+                particle.material.transparent = true;
+            });
+        });
+
+        // REMOVE OLD FIREWORKS
+
+        for (
+            let i = saturnVictoryFireworks.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const firework = saturnVictoryFireworks[i];
+
+            if (firework.age >= 1.8) {
+
+                saturnScene.remove(firework.object);
+
+                if (firework.object.children.length > 0) {
+
+                    firework.object.children[0].geometry.dispose();
+                }
+
+                firework.object.children.forEach(particle => {
+
+                    particle.material.dispose();
+                });
+
+                saturnVictoryFireworks.splice(i, 1);
+            }
+        }
+
+        saturnRenderer.render(
+            saturnScene,
+            saturnCamera
+        );
+
+        if (elapsed < 5.2) {
+
+            saturnVictoryAnimationId =
+                requestAnimationFrame(victoryFrame);
+
+        } else {
+
+            // REMOVE VICTORY PLANETS
+
+            saturnVictoryPlanets.forEach(planet => {
+
+                saturnScene.remove(planet);
+
+                planet.traverse(object => {
+
+                    if (object.geometry) {
+                        object.geometry.dispose();
+                    }
+
+                    if (object.material) {
+
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(material => {
+                                material.dispose();
+                            });
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                });
+            });
+
+            saturnVictoryPlanets = [];
+
+            // REMOVE REMAINING FIREWORKS
+
+            saturnVictoryFireworks.forEach(firework => {
+
+                saturnScene.remove(firework.object);
+
+                firework.object.children.forEach(particle => {
+
+                    particle.material.dispose();
+                });
+            });
+
+            saturnVictoryFireworks = [];
+
+            saturnVictoryAnimationId = null;
+
+            showSaturnResult(true);
+        }
+    }
+
+    saturnVictoryAnimationId =
+        requestAnimationFrame(victoryFrame);
+}
+
+// =============================================
+// 🏆 SATURN - SHOW RESULT
+// =============================================
+
+function showSaturnResult(success) {
+
+    const resultOverlay = document.getElementById(
+        'saturn-result-overlay'
+    );
+
+    const resultTitle = document.getElementById(
+        'saturn-result-title'
+    );
+
+    const resultMessage = document.getElementById(
+        'saturn-result-message'
+    );
+
+    const finalScore = document.getElementById(
+        'saturn-final-score'
+    );
+
+    if (resultTitle) {
+
+        resultTitle.textContent = success
+            ? '🌟 JOURNEY COMPLETE!'
+            : '💫 JOURNEY OVER';
+    }
+
+    if (resultMessage) {
+
+        resultMessage.textContent = success
+            ? 'Amazing! You travelled through the cosmic universe!'
+            : 'The cosmic journey has ended. Try again!';
+    }
+
+    if (finalScore) {
+        finalScore.textContent = saturnScore;
+    }
+
+    if (resultOverlay) {
+        resultOverlay.style.display = 'flex';
+    }
+}
 
     </script>
 
